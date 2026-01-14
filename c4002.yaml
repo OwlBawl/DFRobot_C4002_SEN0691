@@ -1,0 +1,156 @@
+esphome:
+  name: esp32-b
+  friendly_name: esp32-b
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "eqkX2Scgnp/BF0KcPWaWHruAK+K6oHcTxIMPlVI50UI="
+
+ota:
+  - platform: esphome
+    password: "bd31084a3aaa309a8c71065e00d7bd50"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esp32-B Fallback Hotspot"
+    password: "vU65pgMI9BrK"
+
+captive_portal:
+
+# UART配置
+uart:
+  id: uart_bus
+  tx_pin: GPIO25
+  rx_pin: GPIO26
+  baud_rate: 115200
+
+# External components
+external_components:
+  - source:
+      type: git   #来源​
+      url: https://github.com/cdjq/esphome.git   #必须是根目录​
+      ref: dev   #分支​
+    components:
+      dfrobot_c4002  #组件
+
+# external_components:
+#   - source:
+#       type: local
+#       path: custom_components
+
+# C4002 组件配置
+dfrobot_c4002:
+  id: my_c4002
+
+# 传感器配置部分
+sensor:
+  - platform: dfrobot_c4002
+    c4002_id: my_c4002
+    movement_distance:
+      name: "Motion Distance"
+      id: movement_distance_sensor  # 运动距离
+    existing_distance:
+      name: "Presence Distance"
+      id: existing_distance_sensor  # 存在距离
+    movement_speed:
+      name: "Motion Speed"
+      id: movement_speed_sensor
+    movement_direction:
+      name: "Motion Direction"
+      id: movement_direction_sensor  # 运动方向
+      internal: true
+    target_status:
+      name: "Target Status"
+      id: target_status_sensor
+      internal: true
+
+text_sensor:
+  - platform: template
+    name: "Movement Direction"
+    id: movement_direction_text
+    icon: "mdi:directions"
+    lambda: |-
+      int d = id(movement_direction_sensor).state;
+      if (d == 0) return {"Approaching"};
+      else if (d == 1) return {"No Direction"};
+      else if (d == 2) return {"Away"};
+      else return {"未知"};
+    update_interval: 1s
+
+  - platform: template
+    name: "Target Status"
+    id: target_status_text
+    icon: "mdi:human-greeting"
+    lambda: |-
+      int d = id(target_status_sensor).state;
+      if (d == 0) return {"No Target"};
+      else if (d == 1) return {"Static Presence"};
+      else if (d == 2) return {"Motion"};
+      else return {"未知"};
+    update_interval: 0.5s
+
+  - platform: dfrobot_c4002
+    c4002_id: my_c4002
+    c4002_text_sensor:
+      name: "C4002 log"
+      icon: "mdi:message-text-outline"
+
+# 开关配置部分
+switch:
+  - platform: dfrobot_c4002
+    switch_out_led:
+      name: "Out LED Switch"
+    switch_run_led:
+      name: "Run LED Switch"
+    switch_factory_reset:
+      name: "Factory Reset"
+    switch_environmental_calibration:
+      name: "Sensor Calibration"
+
+# Select 配置部分
+select:
+  - platform: dfrobot_c4002
+    c4002_id: my_c4002
+    operating_mode:
+      name: "OUT Mode"
+      options:
+        - "Mode_1"
+        - "Mode_2" 
+        - "Mode_3"
+
+# 最小和最大检测范围配置
+number:
+  - platform: dfrobot_c4002
+    max_range:
+      name: "Max detection distance"
+    min_range:
+      name: "Min detection distance"
+    light_threshold:
+      name: "Light Threshold"
+    area1_min:
+      name: "Area 1 Excluded Range Min"
+    area1_max:
+      name: "Area 1 Excluded Range Max"
+    area2_min:
+      name: "Area 2 Excluded Range Min"
+    area2_max:
+      name: "Area 2 Excluded Range Max"
+    area3_min:
+      name: "Area 3 Excluded Range Min"
+    area3_max:
+      name: "Area 3 Excluded Range Max"
+    target_disappeard_delay_time:
+      name: "Target Disappear Delay Time"
