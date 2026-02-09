@@ -84,9 +84,9 @@ text_sensor:
     icon: "mdi:directions"
     lambda: |-
       int d = id(movement_direction_sensor).state;
-      if (d == 0) return {"Approaching"};
+      if (d == 0) return {"Away"};
       else if (d == 1) return {"No Direction"};
-      else if (d == 2) return {"Away"};
+      else if (d == 2) return {"Approaching"};
       else return {"未知"};
     update_interval: 1s
 
@@ -132,25 +132,25 @@ select:
         - "Mode_3"
 
 # 最小和最大检测范围配置
-number:
-  - platform: dfrobot_c4002
-    max_range:
-      name: "Max detection distance"
-    min_range:
-      name: "Min detection distance"
-    light_threshold:
-      name: "Light Threshold"
-    area1_min:
-      name: "Area 1 Excluded Range Min"
-    area1_max:
-      name: "Area 1 Excluded Range Max"
-    area2_min:
-      name: "Area 2 Excluded Range Min"
-    area2_max:
-      name: "Area 2 Excluded Range Max"
-    area3_min:
-      name: "Area 3 Excluded Range Min"
-    area3_max:
-      name: "Area 3 Excluded Range Max"
-    target_disappeard_delay_time:
-      name: "Target Disappear Delay Time"
+# number:
+#   - platform: dfrobot_c4002
+#     max_range:
+#       name: "Max detection distance"
+#     min_range:
+#       name: "Min detection distance"
+#     light_threshold:
+#       name: "Light Threshold"
+#     area1_min:
+#       name: "Area 1 Excluded Range Min"
+#     area1_max:
+#       name: "Area 1 Excluded Range Max"
+#     area2_min:
+#       name: "Area 2 Excluded Range Min"
+#     area2_max:
+#       name: "Area 2 Excluded Range Max"
+#     area3_min:
+#       name: "Area 3 Excluded Range Min"
+#     area3_max:
+#       name: "Area 3 Excluded Range Max"
+#     target_disappeard_delay_time:
+#       name: "Target Disappear Delay Time"
