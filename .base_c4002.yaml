@@ -160,9 +160,6 @@ switch:
     switch_run_led:
       name: "Run LED Switch"
       id: ${dfrobot_id}_run_led
-    switch_factory_reset:
-      name: "Factory Reset"
-      id: ${dfrobot_id}_factory_reset
     switch_environmental_calibration:
       name: "Sensor Calibration"
       id: ${dfrobot_id}_sensor_calibration
@@ -174,6 +171,9 @@ button:
     refresh_parameters:
       name: "Refresh Parameters"
       id: ${dfrobot_id}_refresh_parameters
+    factory_reset:
+      name: "Factory Reset"
+      id: ${dfrobot_id}_factory_reset
 
 # Select configuration
 select:

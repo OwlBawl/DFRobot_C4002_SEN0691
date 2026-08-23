@@ -18,5 +18,17 @@ class C4002RefreshButton : public Component, public button::Button, public Paren
   }
 };
 
+class C4002FactoryResetButton : public Component, public button::Button, public Parented<C4002Component> {
+ public:
+  C4002FactoryResetButton() = default;
+
+ protected:
+  void press_action() override {
+    if (this->parent_ != nullptr) {
+      this->parent_->factory_reset();
+    }
+  }
+};
+
 }  // namespace dfrobot_c4002
 }  // namespace esphome
