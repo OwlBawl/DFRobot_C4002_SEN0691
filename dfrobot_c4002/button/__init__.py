@@ -4,7 +4,6 @@ import esphome.config_validation as cv
 from esphome.const import (
     DEVICE_CLASS_RESTART,
     ENTITY_CATEGORY_CONFIG,
-    ICON_RESTORE,
 )
 
 from .. import CONF_C4002_ID, C4002Component, dfrobot_c4002_ns
@@ -31,7 +30,7 @@ CONFIG_SCHEMA = cv.Schema(
             C4002FactoryResetButton,
             device_class=DEVICE_CLASS_RESTART,
             entity_category=ENTITY_CATEGORY_CONFIG,
-            icon=ICON_RESTORE,
+            icon="mdi:restore",
         ),
     }
 )
