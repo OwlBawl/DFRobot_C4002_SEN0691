@@ -167,6 +167,14 @@ switch:
       name: "Sensor Calibration"
       id: ${dfrobot_id}_sensor_calibration
 
+# Button configuration
+button:
+  - platform: dfrobot_c4002
+    c4002_id: ${dfrobot_id}
+    refresh_parameters:
+      name: "Refresh Parameters"
+      id: ${dfrobot_id}_refresh_parameters
+
 # Select configuration
 select:
   - platform: dfrobot_c4002

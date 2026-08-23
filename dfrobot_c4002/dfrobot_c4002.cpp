@@ -177,6 +177,56 @@ void C4002Component::update_config_param() {
   } else {
     ESP_LOGD(TAG, "set report period failed");
   }
+
+#ifdef USE_SELECT
+  if (this->operating_selector_ != nullptr) {
+    if (get_out_mode()) {
+      if (this->out_mode_ == OUT_MODE1) {
+        this->operating_selector_->publish_state("Motion Only");
+      } else if (this->out_mode_ == OUT_MODE2) {
+        this->operating_selector_->publish_state("Presence Only");
+      } else if (this->out_mode_ == OUT_MODE3) {
+        this->operating_selector_->publish_state("Motion OR Presence");
+      }
+    }
+  }
+
+  if (this->motion_sensitivity_selector_ != nullptr) {
+    SensitivityLevel sens = get_sensitivity(MOVE_DIST_DOOR);
+    if (sens == SENS_LOW) {
+      this->motion_sensitivity_selector_->publish_state("Low");
+    } else if (sens == SENS_MID) {
+      this->motion_sensitivity_selector_->publish_state("Medium");
+    } else if (sens == SENS_HIGH) {
+      this->motion_sensitivity_selector_->publish_state("High");
+    } else if (sens == SENS_CUSTOM) {
+      this->motion_sensitivity_selector_->publish_state("Custom");
+    }
+  }
+
+  if (this->presence_sensitivity_selector_ != nullptr) {
+    SensitivityLevel sens = get_sensitivity(EXIST_DIST_DOOR);
+    if (sens == SENS_LOW) {
+      this->presence_sensitivity_selector_->publish_state("Low");
+    } else if (sens == SENS_MID) {
+      this->presence_sensitivity_selector_->publish_state("Medium");
+    } else if (sens == SENS_HIGH) {
+      this->presence_sensitivity_selector_->publish_state("High");
+    } else if (sens == SENS_CUSTOM) {
+      this->presence_sensitivity_selector_->publish_state("Custom");
+    }
+  }
+
+  if (this->resolution_mode_selector_ != nullptr) {
+    if (get_resolution_mode()) {
+      if (this->resolution_mode_ == RESOLUTION_20CM) {
+        this->resolution_mode_selector_->publish_state("20cm");
+      } else {
+        this->resolution_mode_selector_->publish_state("80cm");
+      }
+    }
+  }
+#endif
 }
 
 /**
