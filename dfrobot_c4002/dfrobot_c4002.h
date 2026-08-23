@@ -302,6 +302,7 @@ class C4002Component : public Component, public uart::UARTDevice {
   uint16_t get_target_disappear_delay();
   float get_lock_time();
   SensitivityLevel get_sensitivity(DistanceDoorType door_type);
+  bool get_led_status(LedMode &run_led, LedMode &out_led);
   TargetState get_target_state();
   float get_light();
   uint32_t get_exist_dist_index();

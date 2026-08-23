@@ -6,12 +6,18 @@
 namespace esphome {
 namespace dfrobot_c4002 {
 
-class C4002Switch1 : public switch_::Switch, public Parented<C4002Component> {
+class C4002Switch1 : public Component, public switch_::Switch, public Parented<C4002Component> {
+ public:
+  void setup() override;
+
  protected:
   void write_state(bool state) override;
 };
 
-class C4002Switch2 : public switch_::Switch, public Parented<C4002Component> {
+class C4002Switch2 : public Component, public switch_::Switch, public Parented<C4002Component> {
+ public:
+  void setup() override;
+
  protected:
   void write_state(bool state) override;
 };

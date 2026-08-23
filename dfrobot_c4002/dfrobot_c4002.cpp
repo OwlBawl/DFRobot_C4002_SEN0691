@@ -159,13 +159,15 @@ void C4002Component::update_config_param() {
     lock_time_number_->publish_state(current_lock_time);
   }
 
-  if (run_led_switch_ != nullptr) {
-    set_run_led(LED_ON);
-    run_led_switch_->publish_state((bool) LED_ON);
-  }
-  if (out_led_switch_ != nullptr) {
-    set_out_led(LED_ON);
-    out_led_switch_->publish_state((bool) LED_ON);
+  LedMode run_led = LED_KEEP;
+  LedMode out_led = LED_KEEP;
+  if (get_led_status(run_led, out_led)) {
+    if (run_led_switch_ != nullptr && run_led != LED_KEEP) {
+      run_led_switch_->publish_state(run_led == LED_ON);
+    }
+    if (out_led_switch_ != nullptr && out_led != LED_KEEP) {
+      out_led_switch_->publish_state(out_led == LED_ON);
+    }
   }
 
   //** config report period **//
@@ -484,6 +486,29 @@ bool C4002Component::set_out_led(LedMode out_led) {
 
   RecvPack rec_pack = recv_pack();
   return (SUCCEED == rec_pack.resPonCode);
+}
+
+/**
+ * get_led_status
+ * Get current run LED and out LED modes from hardware.
+ */
+bool C4002Component::get_led_status(LedMode &run_led, LedMode &out_led) {
+  uint8_t send_date[10];
+  uint16_t data_len = 0;
+  uint16_t temp = 4;
+  send_date[data_len++] = CMD_SET_LED_MODE;
+  send_date[data_len++] = READ_AND_WRITE_REQ;
+  send_date[data_len++] = temp >> 0 & 0xFF;
+  send_date[data_len++] = temp >> 8 & 0xFF;
+  send_pack(send_date, data_len, FRAME_TYPE_READ_REQUSET);
+
+  RecvPack rec_pack = recv_pack();
+  if (SUCCEED == rec_pack.resPonCode) {
+    run_led = (LedMode) rec_pack.data[0];
+    out_led = (LedMode) rec_pack.data[1];
+    return true;
+  }
+  return false;
 }
 
 /**
