@@ -81,11 +81,6 @@ void C4002SwitchEnvironmentalCalibration::write_state(bool state) {
     if (state) {
       this->parent_->start_env_calibration(3, 15);
       this->publish_state(true);
-
-      this->set_timeout(18000, [this]() {
-        this->publish_state(false);
-        this->parent_->update_config_param();
-      });
     } else {
       this->publish_state(false);
       this->parent_->update_config_param();

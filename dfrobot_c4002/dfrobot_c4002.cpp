@@ -43,6 +43,12 @@ void C4002Component::loop() {
       ESP_LOGD(TAG, "Calibration complete!");
       this->publish_text("Calibration complete!");
       analysis_text_report();
+#ifdef USE_SWITCH
+      if (this->env_calibration_switch_ != nullptr) {
+        this->env_calibration_switch_->publish_state(false);
+      }
+#endif
+      this->update_config_param();
     }
   }
 
