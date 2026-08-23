@@ -153,6 +153,12 @@ void C4002Component::update_config_param() {
     lock_time_number_->publish_state(current_lock_time);
   }
 
+  if (report_period_number_ != nullptr) {
+    if (std::isnan(report_period_number_->state)) {
+      report_period_number_->publish_state(1.0f);
+    }
+  }
+
   LedMode run_led = LED_KEEP;
   LedMode out_led = LED_KEEP;
   if (get_led_status(run_led, out_led)) {
