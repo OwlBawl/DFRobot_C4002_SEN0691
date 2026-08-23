@@ -201,5 +201,26 @@ void TargetDisappeardDelayTimeNumber::control(float value) {
   }
 }
 
+void LockTimeNumber::control(float value) {
+  if (this->parent_->set_lock_time(value)) {
+    ESP_LOGD(TAG, "Set lock time success: %.1f s", value);
+    this->publish_state(value);
+  } else {
+    this->publish_state(NAN);
+    ESP_LOGD(TAG, "Set lock time failed");
+  }
+}
+
+void ReportPeriodNumber::control(float value) {
+  uint8_t period_units = (uint8_t) (value * 10);
+  if (this->parent_->set_report_period(period_units)) {
+    ESP_LOGD(TAG, "Set report period success: %.1f s", value);
+    this->publish_state(value);
+  } else {
+    this->publish_state(NAN);
+    ESP_LOGD(TAG, "Set report period failed");
+  }
+}
+
 }  // namespace dfrobot_c4002
 }  // namespace esphome

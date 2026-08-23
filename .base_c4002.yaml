@@ -58,7 +58,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/OwlBawl/DFRobot_C4002_SEN0691.git
-      ref: main
+      ref: test
       path: .
     components:
       dfrobot_c4002
@@ -102,6 +102,21 @@ sensor:
       name: "Target Status"
       id: ${dfrobot_id}_target_status_sensor
       internal: true
+    illuminance:
+      name: "Illuminance"
+      id: ${dfrobot_id}_illuminance
+    movement_energy:
+      name: "Motion Energy"
+      id: ${dfrobot_id}_movement_energy
+    existing_energy:
+      name: "Presence Energy"
+      id: ${dfrobot_id}_existing_energy
+    presence_countdown:
+      name: "Presence Countdown"
+      id: ${dfrobot_id}_presence_countdown
+    active_gates:
+      name: "Active Gates Bitmask"
+      id: ${dfrobot_id}_active_gates
 
 text_sensor:
   - platform: template
@@ -154,25 +169,20 @@ switch:
 
 # Select configuration
 select:
-  - platform: template
-    name: "OUT Mode"
-    id: ${dfrobot_id}_out_mode_select
-    icon: "mdi:account"
-    options:
-      - "Motion Only"
-      - "Presence Only"
-      - "Motion OR Presence"
-    initial_option: "Motion OR Presence"
-    optimistic: true
-    set_action:
-      - lambda: |-
-          if (x == "Motion Only") {
-            id(${dfrobot_id}).set_out_mode(esphome::dfrobot_c4002::OUT_MODE1);
-          } else if (x == "Presence Only") {
-            id(${dfrobot_id}).set_out_mode(esphome::dfrobot_c4002::OUT_MODE2);
-          } else if (x == "Motion OR Presence") {
-            id(${dfrobot_id}).set_out_mode(esphome::dfrobot_c4002::OUT_MODE3);
-          }
+  - platform: dfrobot_c4002
+    c4002_id: ${dfrobot_id}
+    operating_mode:
+      name: "OUT Mode"
+      id: ${dfrobot_id}_out_mode_select
+    motion_sensitivity:
+      name: "Motion Sensitivity"
+      id: ${dfrobot_id}_motion_sensitivity
+    presence_sensitivity:
+      name: "Presence Sensitivity"
+      id: ${dfrobot_id}_presence_sensitivity
+    resolution_mode:
+      name: "Resolution Mode"
+      id: ${dfrobot_id}_resolution_mode
 
 # Min and max detection range configuration
 number:
@@ -187,6 +197,12 @@ number:
     light_threshold:
       name: "Light Threshold"
       id: ${dfrobot_id}_light_threshold
+    lock_time:
+      name: "Lock Time"
+      id: ${dfrobot_id}_lock_time
+    report_period:
+      name: "Report Period"
+      id: ${dfrobot_id}_report_period
     area1_min:
       name: "Area 1 Excluded Range Min"
       id: ${dfrobot_id}_area1_min

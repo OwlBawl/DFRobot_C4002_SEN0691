@@ -3,10 +3,6 @@
 #include "../dfrobot_c4002.h"
 #include "esphome/components/select/select.h"
 
-#define MODE_1 "Mode_1"
-#define MODE_2 "Mode_2"
-#define MODE_3 "Mode_3"
-
 namespace esphome {
 namespace dfrobot_c4002 {
 
@@ -14,11 +10,33 @@ class C4002Select : public Component, public select::Select, public Parented<C40
  public:
   C4002Select() = default;
 
-  void set_options(const std::vector<std::string> &options){};
+ protected:
+  void control(const std::string &value) override;
+  std::string options_[3] = {"Motion Only", "Presence Only", "Motion OR Presence"};
+};
+
+class MotionSensitivitySelect : public Component, public select::Select, public Parented<C4002Component> {
+ public:
+  MotionSensitivitySelect() = default;
 
  protected:
   void control(const std::string &value) override;
-  std::string options_[3] = {"Mode_1", "Mode_2", "Mode_3"};
+};
+
+class PresenceSensitivitySelect : public Component, public select::Select, public Parented<C4002Component> {
+ public:
+  PresenceSensitivitySelect() = default;
+
+ protected:
+  void control(const std::string &value) override;
+};
+
+class ResolutionModeSelect : public Component, public select::Select, public Parented<C4002Component> {
+ public:
+  ResolutionModeSelect() = default;
+
+ protected:
+  void control(const std::string &value) override;
 };
 
 }  // namespace dfrobot_c4002

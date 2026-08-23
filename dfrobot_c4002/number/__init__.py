@@ -5,7 +5,9 @@ from esphome.const import (
     CONF_MAX_RANGE,
     CONF_MIN_RANGE,
     DEVICE_CLASS_DISTANCE,
+    DEVICE_CLASS_DURATION,
     ENTITY_CATEGORY_CONFIG,
+    UNIT_SECOND,
 )
 
 from .. import CONF_C4002_ID, C4002Component, dfrobot_c4002_ns
@@ -19,7 +21,9 @@ from .const import (
     CONF_LIGHT_THRESHOLD_1,
 )
 
-CONF_TARGET_DISAPPEARD_Delay_TIME = "target_disappeard_delay_time"
+CONF_TARGET_DISAPPEARD_DELAY_TIME = "target_disappeard_delay_time"
+CONF_LOCK_TIME = "lock_time"
+CONF_REPORT_PERIOD = "report_period"
 
 MinDetectRangeNumber = dfrobot_c4002_ns.class_("MinDetectRangeNumber", number.Number)
 MaxRDetectangeNumber = dfrobot_c4002_ns.class_("MaxDetectRangeNumber", number.Number)
@@ -36,6 +40,8 @@ Area3MaxRangeNumber = dfrobot_c4002_ns.class_("Area3MaxRangeNumber", number.Numb
 TargetDisappeardDelayTimeNumber = dfrobot_c4002_ns.class_(
     "TargetDisappeardDelayTimeNumber", number.Number
 )
+LockTimeNumber = dfrobot_c4002_ns.class_("LockTimeNumber", number.Number)
+ReportPeriodNumber = dfrobot_c4002_ns.class_("ReportPeriodNumber", number.Number)
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -103,12 +109,26 @@ CONFIG_SCHEMA = cv.Schema(
             icon="mdi:counter",
             unit_of_measurement="m",
         ),
-        cv.Optional(CONF_TARGET_DISAPPEARD_Delay_TIME): number.number_schema(
+        cv.Optional(CONF_TARGET_DISAPPEARD_DELAY_TIME): number.number_schema(
             TargetDisappeardDelayTimeNumber,
-            device_class=DEVICE_CLASS_DISTANCE,
+            device_class=DEVICE_CLASS_DURATION,
             entity_category=ENTITY_CATEGORY_CONFIG,
             icon="mdi:account-clock",
-            unit_of_measurement="s",
+            unit_of_measurement=UNIT_SECOND,
+        ),
+        cv.Optional(CONF_LOCK_TIME): number.number_schema(
+            LockTimeNumber,
+            device_class=DEVICE_CLASS_DURATION,
+            entity_category=ENTITY_CATEGORY_CONFIG,
+            icon="mdi:lock-clock",
+            unit_of_measurement=UNIT_SECOND,
+        ),
+        cv.Optional(CONF_REPORT_PERIOD): number.number_schema(
+            ReportPeriodNumber,
+            device_class=DEVICE_CLASS_DURATION,
+            entity_category=ENTITY_CATEGORY_CONFIG,
+            icon="mdi:timer-refresh",
+            unit_of_measurement=UNIT_SECOND,
         ),
     }
 )
@@ -182,10 +202,24 @@ async def to_code(config):
         cg.add(number_component.set_area3_max_range_number(n))
 
     if target_disappeard_delay_time_config := config.get(
-        CONF_TARGET_DISAPPEARD_Delay_TIME
+        CONF_TARGET_DISAPPEARD_DELAY_TIME
     ):
         n = await number.new_number(
-            target_disappeard_delay_time_config, min_value=0, max_value=100, step=1
+            target_disappeard_delay_time_config, min_value=0, max_value=65535, step=1
         )
         await cg.register_parented(n, config[CONF_C4002_ID])
         cg.add(number_component.set_target_disappeard_delay_time_number(n))
+
+    if lock_time_config := config.get(CONF_LOCK_TIME):
+        n = await number.new_number(
+            lock_time_config, min_value=0.2, max_value=10.0, step=0.1
+        )
+        await cg.register_parented(n, config[CONF_C4002_ID])
+        cg.add(number_component.set_lock_time_number(n))
+
+    if report_period_config := config.get(CONF_REPORT_PERIOD):
+        n = await number.new_number(
+            report_period_config, min_value=0.1, max_value=25.5, step=0.1
+        )
+        await cg.register_parented(n, config[CONF_C4002_ID])
+        cg.add(number_component.set_report_period_number(n))

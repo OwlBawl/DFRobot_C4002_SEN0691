@@ -70,6 +70,9 @@ void C4002Component::get_data() {
   ExistTgt exit_taget_data = get_exist_target_info();
   MoveTgt move_taget_data = get_move_target_info();
   TargetState target_state = get_target_state();
+  float light = get_light();
+  uint16_t countdown = get_presence_countdown();
+  uint32_t active_gates = get_exist_dist_index();
 
   for (auto &listener : this->listeners_) {
     if (listener != nullptr) {
@@ -78,6 +81,11 @@ void C4002Component::get_data() {
       listener->on_movement_direction(static_cast<float>(move_taget_data.direction));
       listener->on_existing_distance(exit_taget_data.distance);
       listener->on_target_status((uint8_t) target_state);
+      listener->on_illuminance(light);
+      listener->on_movement_energy(move_taget_data.energy);
+      listener->on_existing_energy(exit_taget_data.energy);
+      listener->on_presence_countdown(countdown);
+      listener->on_active_gates(active_gates);
     }
   }
 }
@@ -146,6 +154,11 @@ void C4002Component::update_config_param() {
     target_disappeard_delay_time_number_->publish_state(current_delay_time);
   }
 
+  if (lock_time_number_ != nullptr) {
+    float current_lock_time = get_lock_time();
+    lock_time_number_->publish_state(current_lock_time);
+  }
+
   if (run_led_switch_ != nullptr) {
     set_run_led(LED_ON);
     run_led_switch_->publish_state((bool) LED_ON);
@@ -158,6 +171,9 @@ void C4002Component::update_config_param() {
   //** config report period **//
   if (set_report_period(10)) {
     ESP_LOGD(TAG, "set report period success");
+    if (report_period_number_ != nullptr) {
+      report_period_number_->publish_state(1.0f);
+    }
   } else {
     ESP_LOGD(TAG, "set report period failed");
   }
@@ -1064,6 +1080,77 @@ bool C4002Component::set_max_range(float range) {
   }
 }
 #endif
+
+bool C4002Component::set_lock_time(float lock_time) {
+  uint8_t send_data[10];
+  uint16_t data_len = 0;
+  uint16_t temp = 6;
+  uint16_t time_temp = (uint16_t) (lock_time * 10);
+
+  send_data[data_len++] = CMD_LOCK_TIME;
+  send_data[data_len++] = READ_AND_WRITE_REQ;
+  send_data[data_len++] = temp >> 0 & 0xFF;
+  send_data[data_len++] = temp >> 8 & 0xFF;
+  send_data[data_len++] = time_temp >> 0 & 0xFF;
+  send_data[data_len++] = time_temp >> 8 & 0xFF;
+  send_pack(send_data, data_len, FRAME_TYPE_WRITE_REQUSET);
+
+  RecvPack rec_pack = recv_pack();
+  return (SUCCEED == rec_pack.resPonCode);
+}
+
+float C4002Component::get_lock_time() {
+  uint8_t send_data[10];
+  uint16_t data_len = 0;
+  uint16_t temp = 4;
+  send_data[data_len++] = CMD_LOCK_TIME;
+  send_data[data_len++] = READ_AND_WRITE_REQ;
+  send_data[data_len++] = temp >> 0 & 0xFF;
+  send_data[data_len++] = temp >> 8 & 0xFF;
+  send_pack(send_data, data_len, FRAME_TYPE_READ_REQUSET);
+
+  RecvPack rec_pack = recv_pack();
+  if (SUCCEED == rec_pack.resPonCode) {
+    uint16_t time_val = (rec_pack.data[1] << 8) | rec_pack.data[0];
+    return (float) time_val * 0.1f;
+  }
+  return 1.0f;
+}
+
+bool C4002Component::set_sensitivity(DistanceDoorType door_type, SensitivityLevel sensitivity) {
+  uint8_t send_data[10];
+  uint16_t data_len = 0;
+  uint16_t temp = 6;
+  send_data[data_len++] = CMD_THRESHOLD_GROUP;
+  send_data[data_len++] = READ_AND_WRITE_REQ;
+  send_data[data_len++] = temp >> 0 & 0xFF;
+  send_data[data_len++] = temp >> 8 & 0xFF;
+  send_data[data_len++] = (uint8_t) door_type;
+  send_data[data_len++] = (uint8_t) sensitivity;
+  send_pack(send_data, data_len, FRAME_TYPE_WRITE_REQUSET);
+
+  RecvPack rec_pack = recv_pack();
+  return (SUCCEED == rec_pack.resPonCode);
+}
+
+SensitivityLevel C4002Component::get_sensitivity(DistanceDoorType door_type) {
+  uint8_t send_data[10];
+  uint16_t data_len = 0;
+  uint16_t temp = 6;
+  send_data[data_len++] = CMD_THRESHOLD_GROUP;
+  send_data[data_len++] = READ_AND_WRITE_REQ;
+  send_data[data_len++] = temp >> 0 & 0xFF;
+  send_data[data_len++] = temp >> 8 & 0xFF;
+  send_data[data_len++] = (uint8_t) door_type;
+  send_data[data_len++] = 0x00;
+  send_pack(send_data, data_len, FRAME_TYPE_READ_REQUSET);
+
+  RecvPack rec_pack = recv_pack();
+  if (SUCCEED == rec_pack.resPonCode) {
+    return (SensitivityLevel) rec_pack.data[1];
+  }
+  return SENS_ERROR;
+}
 
 }  // namespace dfrobot_c4002
 }  // namespace esphome

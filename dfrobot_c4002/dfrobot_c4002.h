@@ -33,6 +33,11 @@ class C4002Listener {
   virtual void on_movement_direction(float direction){};
   virtual void on_existing_distance(float distance){};
   virtual void on_target_status(uint8_t state){};
+  virtual void on_illuminance(float lux){};
+  virtual void on_movement_energy(uint8_t energy){};
+  virtual void on_existing_energy(uint8_t energy){};
+  virtual void on_presence_countdown(uint16_t seconds){};
+  virtual void on_active_gates(uint32_t bitmask){};
 };
 
 static const uint8_t TIME_OUT = 0x64;  ///< time out
@@ -63,6 +68,8 @@ static const uint8_t CMD_GET_AND_SET_RESOLUTION_MODE = 0x66;
 static const uint8_t CMD_SET_DISTANCE_DOOR_THRESHOLD = 0x63;
 static const uint8_t CMD_SET_BAUDRATE = 0x21;
 static const uint8_t CMD_TARGET_DISAPPEAR_DELAY_TIME = 0x84;
+static const uint8_t CMD_LOCK_TIME = 0x85;
+static const uint8_t CMD_THRESHOLD_GROUP = 0x87;
 static const uint8_t CMD_FACTORY_RESET_USER = 0x02;
 
 static const uint8_t NOTE_RESULT_CMD = 0x60;
@@ -71,6 +78,19 @@ static const uint8_t NOTE_ENVIRNMENT_CALIBRATION_CMD = 0x03;
 static const uint8_t SOFTWARE_VERSION = 0x01;
 static const uint8_t HARDWARE_VERSION = 0x00;
 static const int DOOR_COUNT = 15;
+
+/**
+ * @enum SensitivityLevel
+ * @brief Sensitivity threshold group
+ */
+enum SensitivityLevel {
+  SENS_LOW = 0x00,
+  SENS_MID = 0x01,
+  SENS_HIGH = 0x02,
+  SENS_CUSTOM = 0x03,
+  SENS_CURRENT = 0xFF,
+  SENS_ERROR = 0xFE
+};
 
 /**
  * @enum ResolutionMode
@@ -271,6 +291,8 @@ class C4002Component : public Component, public uart::UARTDevice {
   bool set_out_led(LedMode out_led);
   bool set_out_mode(OutMode out_mode);
   bool set_report_period(uint8_t period);
+  bool set_lock_time(float lock_time);
+  bool set_sensitivity(DistanceDoorType door_type, SensitivityLevel sensitivity);
   bool joint_enable_door();
   bool set_target_disappear_delay(uint16_t delay_time);
 
@@ -278,9 +300,12 @@ class C4002Component : public Component, public uart::UARTDevice {
   void analysis_text_report();
   void get_distance_presence_threshold(DistanceDoorType door_type, uint8_t *gate_data);
   uint16_t get_target_disappear_delay();
+  float get_lock_time();
+  SensitivityLevel get_sensitivity(DistanceDoorType door_type);
   TargetState get_target_state();
   float get_light();
   uint32_t get_exist_dist_index();
+  uint16_t get_presence_countdown() { return detect_result_.existCountDown; }
   ExistTgt get_exist_target_info();
   MoveTgt get_move_target_info();
   bool get_resolution_mode();
@@ -294,7 +319,7 @@ class C4002Component : public Component, public uart::UARTDevice {
   void send_pack(void *pdata, uint16_t len, uint8_t msg_type);
   RecvPck recv_pack();
   bool check_sum(const uint8_t *pdata, uint8_t len);
-  uint16_t get_check_sum(const uint8_t *pdata, uint16_t len);
+  uint16_t get_check_sum(const uint8_t *pdata, uint8_t len);
   size_t uart_read_raw(uint8_t *buf, size_t bufsize, uint32_t timeout_ms = 200);
   void uart_write_data(uint8_t *datas, size_t len);
 
@@ -311,6 +336,9 @@ class C4002Component : public Component, public uart::UARTDevice {
   //** USE_SELECT **//
   void set_operating_mode_select(select::Select *selector) { this->operating_selector_ = selector; };
   uint8_t get_out_mode_select() { return (uint8_t) this->out_mode_; };
+  void set_motion_sensitivity_select(select::Select *selector) { this->motion_sensitivity_selector_ = selector; }
+  void set_presence_sensitivity_select(select::Select *selector) { this->presence_sensitivity_selector_ = selector; }
+  void set_resolution_mode_select(select::Select *selector) { this->resolution_mode_selector_ = selector; }
 #endif
 
 #ifdef USE_NUMBER
@@ -318,6 +346,8 @@ class C4002Component : public Component, public uart::UARTDevice {
   void set_min_range_number(number::Number *number) { this->min_range_number_ = number; }
   void set_max_range_number(number::Number *number) { this->max_range_number_ = number; }
   void set_light_threshold_number(number::Number *number) { this->light_threshold_number_ = number; }
+  void set_lock_time_number(number::Number *number) { this->lock_time_number_ = number; }
+  void set_report_period_number(number::Number *number) { this->report_period_number_ = number; }
   void set_area1_min_range_number(number::Number *number) { this->area1_min_range_number_ = number; }
   void set_area1_max_range_number(number::Number *number) { this->area1_max_range_number_ = number; }
   void set_area2_min_range_number(number::Number *number) { this->area2_min_range_number_ = number; }
@@ -373,6 +403,9 @@ class C4002Component : public Component, public uart::UARTDevice {
 #ifdef USE_SELECT
   // ** USE_SELECT **//
   select::Select *operating_selector_{nullptr};
+  select::Select *motion_sensitivity_selector_{nullptr};
+  select::Select *presence_sensitivity_selector_{nullptr};
+  select::Select *resolution_mode_selector_{nullptr};
 #endif
 
 #ifdef USE_SWITCH
@@ -388,6 +421,8 @@ class C4002Component : public Component, public uart::UARTDevice {
   number::Number *min_range_number_{nullptr};
   number::Number *max_range_number_{nullptr};
   number::Number *light_threshold_number_{nullptr};
+  number::Number *lock_time_number_{nullptr};
+  number::Number *report_period_number_{nullptr};
   number::Number *area1_min_range_number_{nullptr};
   number::Number *area1_max_range_number_{nullptr};
   number::Number *area2_min_range_number_{nullptr};
