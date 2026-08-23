@@ -60,6 +60,13 @@ void LightThresholdNumber::control(float value) {
 }
 
 // ===== 区域 1 =====
+void Area1MinRangeNumber::setup() {
+  auto initial_state = this->get_initial_state();
+  if (initial_state.has_value()) {
+    this->control(*initial_state);
+  }
+}
+
 void Area1MinRangeNumber::control(float value) {
   float area1_min = this->parent_->get_area_range(AREA1_DOOR_MIN);
   float area1_max = this->parent_->get_area_range(AREA1_DOOR_MAX);
@@ -80,6 +87,13 @@ void Area1MinRangeNumber::control(float value) {
     this->publish_state(area1_min);
     this->parent_->set_area_range(AREA1_DOOR_MIN, area1_min);
     // this->parent_->publish_text_("The maximum must be greater than the minimum.")
+  }
+}
+
+void Area1MaxRangeNumber::setup() {
+  auto initial_state = this->get_initial_state();
+  if (initial_state.has_value()) {
+    this->control(*initial_state);
   }
 }
 
@@ -105,6 +119,13 @@ void Area1MaxRangeNumber::control(float value) {
 }
 
 // ===== 区域 2 =====
+void Area2MinRangeNumber::setup() {
+  auto initial_state = this->get_initial_state();
+  if (initial_state.has_value()) {
+    this->control(*initial_state);
+  }
+}
+
 void Area2MinRangeNumber::control(float value) {
   float area2_min = this->parent_->get_area_range(AREA2_DOOR_MIN);
   float area2_max = this->parent_->get_area_range(AREA2_DOOR_MAX);
@@ -123,6 +144,13 @@ void Area2MinRangeNumber::control(float value) {
     this->publish_state(area2_min);
     this->parent_->set_area_range(AREA2_DOOR_MIN, area2_min);
     // this->parent_->publish_text_("The maximum must be greater than the minimum.")
+  }
+}
+
+void Area2MaxRangeNumber::setup() {
+  auto initial_state = this->get_initial_state();
+  if (initial_state.has_value()) {
+    this->control(*initial_state);
   }
 }
 
@@ -148,6 +176,13 @@ void Area2MaxRangeNumber::control(float value) {
 }
 
 // ===== 区域 3 =====
+void Area3MinRangeNumber::setup() {
+  auto initial_state = this->get_initial_state();
+  if (initial_state.has_value()) {
+    this->control(*initial_state);
+  }
+}
+
 void Area3MinRangeNumber::control(float value) {
   float area3_min = this->parent_->get_area_range(AREA3_DOOR_MIN);
   float area3_max = this->parent_->get_area_range(AREA3_DOOR_MAX);
@@ -167,6 +202,13 @@ void Area3MinRangeNumber::control(float value) {
     this->publish_state(area3_min);
     this->parent_->set_area_range(AREA3_DOOR_MIN, area3_min);
     // this->parent_->publish_text_("The maximum must be greater than the minimum.")
+  }
+}
+
+void Area3MaxRangeNumber::setup() {
+  auto initial_state = this->get_initial_state();
+  if (initial_state.has_value()) {
+    this->control(*initial_state);
   }
 }
 
@@ -208,6 +250,13 @@ void LockTimeNumber::control(float value) {
   } else {
     this->publish_state(NAN);
     ESP_LOGD(TAG, "Set lock time failed");
+  }
+}
+
+void ReportPeriodNumber::setup() {
+  auto initial_state = this->get_initial_state();
+  if (initial_state.has_value()) {
+    this->control(*initial_state);
   }
 }
 

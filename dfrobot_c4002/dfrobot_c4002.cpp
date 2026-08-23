@@ -125,12 +125,6 @@ void C4002Component::update_config_param() {
     ESP_LOGD(TAG, "Publishing light_threshold_: %.2f", current_light_threshold);
   }
 
-  for (float &v : current_area_) {
-    v = 0.0f;
-  }
-
-  joint_enable_door();
-
   if (area1_min_range_number_ != nullptr) {
     area1_min_range_number_->publish_state(current_area_[AREA1_DOOR_MIN]);
   }
@@ -168,16 +162,6 @@ void C4002Component::update_config_param() {
     if (out_led_switch_ != nullptr && out_led != LED_KEEP) {
       out_led_switch_->publish_state(out_led == LED_ON);
     }
-  }
-
-  //** config report period **//
-  if (set_report_period(10)) {
-    ESP_LOGD(TAG, "set report period success");
-    if (report_period_number_ != nullptr) {
-      report_period_number_->publish_state(1.0f);
-    }
-  } else {
-    ESP_LOGD(TAG, "set report period failed");
   }
 
 #ifdef USE_SELECT

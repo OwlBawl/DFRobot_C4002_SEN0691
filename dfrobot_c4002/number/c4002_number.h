@@ -21,35 +21,53 @@ class LightThresholdNumber : public number::Number, public Parented<C4002Compone
   void control(float value) override;
 };
 
-// ===== 区域 1 的最小 / 最大门编号 (0~11) =====
-class Area1MinRangeNumber : public number::Number, public Parented<C4002Component> {
+// ===== Area 1 Excluded Range =====
+class Area1MinRangeNumber : public Component, public number::Number, public Parented<C4002Component> {
+ public:
+  void setup() override;
+
  protected:
   void control(float value) override;
 };
 
-class Area1MaxRangeNumber : public number::Number, public Parented<C4002Component> {
+class Area1MaxRangeNumber : public Component, public number::Number, public Parented<C4002Component> {
+ public:
+  void setup() override;
+
  protected:
   void control(float value) override;
 };
 
-// ===== 区域 2 =====
-class Area2MinRangeNumber : public number::Number, public Parented<C4002Component> {
+// ===== Area 2 Excluded Range =====
+class Area2MinRangeNumber : public Component, public number::Number, public Parented<C4002Component> {
+ public:
+  void setup() override;
+
  protected:
   void control(float value) override;
 };
 
-class Area2MaxRangeNumber : public number::Number, public Parented<C4002Component> {
+class Area2MaxRangeNumber : public Component, public number::Number, public Parented<C4002Component> {
+ public:
+  void setup() override;
+
  protected:
   void control(float value) override;
 };
 
-// ===== 区域 3 =====
-class Area3MinRangeNumber : public number::Number, public Parented<C4002Component> {
+// ===== Area 3 Excluded Range =====
+class Area3MinRangeNumber : public Component, public number::Number, public Parented<C4002Component> {
+ public:
+  void setup() override;
+
  protected:
   void control(float value) override;
 };
 
-class Area3MaxRangeNumber : public number::Number, public Parented<C4002Component> {
+class Area3MaxRangeNumber : public Component, public number::Number, public Parented<C4002Component> {
+ public:
+  void setup() override;
+
  protected:
   void control(float value) override;
 };
@@ -64,7 +82,10 @@ class LockTimeNumber : public number::Number, public Parented<C4002Component> {
   void control(float value) override;
 };
 
-class ReportPeriodNumber : public number::Number, public Parented<C4002Component> {
+class ReportPeriodNumber : public Component, public number::Number, public Parented<C4002Component> {
+ public:
+  void setup() override;
+
  protected:
   void control(float value) override;
 };
