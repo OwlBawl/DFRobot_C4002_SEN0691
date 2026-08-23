@@ -1,6 +1,7 @@
 #include "operating_mode_select.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
+#include <cstdio>
 #include <string>
 #include <vector>
 
@@ -77,6 +78,18 @@ void ResolutionModeSelect::control(const std::string &value) {
       this->publish_state(value);
     } else {
       ESP_LOGD(TAG, "Set resolution mode failed");
+    }
+  }
+}
+
+void GateSelect::control(const std::string &value) {
+  if (this->parent_) {
+    int gate_idx = 0;
+    if (sscanf(value.c_str(), "Gate %d", &gate_idx) == 1) {
+      if (gate_idx >= 0 && gate_idx < 15) {
+        this->parent_->select_gate_to_edit((uint8_t) gate_idx);
+        this->publish_state(value);
+      }
     }
   }
 }

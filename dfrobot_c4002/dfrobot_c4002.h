@@ -38,6 +38,7 @@ class C4002Listener {
   virtual void on_existing_energy(uint8_t energy){};
   virtual void on_presence_countdown(uint16_t seconds){};
   virtual void on_active_gates(uint32_t bitmask){};
+  virtual void on_gates_summary(const std::string &summary){};
 };
 
 static const uint8_t TIME_OUT = 0x64;  ///< time out
@@ -293,15 +294,23 @@ class C4002Component : public Component, public uart::UARTDevice {
   bool set_report_period(uint8_t period);
   bool set_lock_time(float lock_time);
   bool set_sensitivity(DistanceDoorType door_type, SensitivityLevel sensitivity);
+  bool set_gate_thresh(DistanceDoorType door_type, const uint8_t *thresh);
+  bool set_single_gate_thresh(DistanceDoorType door_type, uint8_t gate_index, uint8_t value);
+  void select_gate_to_edit(uint8_t gate_index);
+  void set_show_gates_energy(bool show);
+  bool get_show_gates_energy() const { return this->show_gates_energy_; }
   bool joint_enable_door();
   bool set_target_disappear_delay(uint16_t delay_time);
 
   // ** param getters ** //
   void analysis_text_report();
   void get_distance_presence_threshold(DistanceDoorType door_type, uint8_t *gate_data);
+  bool get_distance_gate_thresh(DistanceDoorType door_type, uint8_t *gate_data);
   uint16_t get_target_disappear_delay();
   float get_lock_time();
   SensitivityLevel get_sensitivity(DistanceDoorType door_type);
+  uint8_t get_cached_gate_thresh(DistanceDoorType door_type, uint8_t gate_index);
+  uint8_t get_current_selected_gate() const { return this->current_selected_gate_; }
   bool get_led_status(LedMode &run_led, LedMode &out_led);
   TargetState get_target_state();
   float get_light();
@@ -330,7 +339,7 @@ class C4002Component : public Component, public uart::UARTDevice {
   void set_out_led_switch(switch_::Switch *sw) { this->out_led_switch_ = sw; };
   void set_factory_reset_switch(switch_::Switch *sw) { this->factory_reset_switch_ = sw; };
   void set_environmental_calibration_switch(switch_::Switch *sw) { this->env_calibration_switch_ = sw; };
-
+  void set_show_gates_energy_switch(switch_::Switch *sw) { this->show_gates_energy_switch_ = sw; }
 #endif
 
 #ifdef USE_SELECT
@@ -340,6 +349,7 @@ class C4002Component : public Component, public uart::UARTDevice {
   void set_motion_sensitivity_select(select::Select *selector) { this->motion_sensitivity_selector_ = selector; }
   void set_presence_sensitivity_select(select::Select *selector) { this->presence_sensitivity_selector_ = selector; }
   void set_resolution_mode_select(select::Select *selector) { this->resolution_mode_selector_ = selector; }
+  void set_gate_select(select::Select *selector) { this->gate_selector_ = selector; }
 #endif
 
 #ifdef USE_NUMBER
@@ -349,6 +359,8 @@ class C4002Component : public Component, public uart::UARTDevice {
   void set_light_threshold_number(number::Number *number) { this->light_threshold_number_ = number; }
   void set_lock_time_number(number::Number *number) { this->lock_time_number_ = number; }
   void set_report_period_number(number::Number *number) { this->report_period_number_ = number; }
+  void set_gate_motion_thresh_number(number::Number *number) { this->gate_motion_thresh_number_ = number; }
+  void set_gate_presence_thresh_number(number::Number *number) { this->gate_presence_thresh_number_ = number; }
   void set_area1_min_range_number(number::Number *number) { this->area1_min_range_number_ = number; }
   void set_area1_max_range_number(number::Number *number) { this->area1_max_range_number_ = number; }
   void set_area2_min_range_number(number::Number *number) { this->area2_min_range_number_ = number; }
@@ -397,6 +409,12 @@ class C4002Component : public Component, public uart::UARTDevice {
   float current_area_[6] = {0, 0, 0, 0, 0, 0};
   uint8_t enable_door_[15] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
+  //** gate thresholds & telemetry **//
+  uint8_t motion_gate_thresh_[15] = {0};
+  uint8_t presence_gate_thresh_[15] = {0};
+  uint8_t current_selected_gate_ = 0;
+  bool show_gates_energy_ = false;
+
   //** light threshold **//
   uint16_t light_threshold_;
   uint8_t reset_flag_ = 0;
@@ -407,6 +425,7 @@ class C4002Component : public Component, public uart::UARTDevice {
   select::Select *motion_sensitivity_selector_{nullptr};
   select::Select *presence_sensitivity_selector_{nullptr};
   select::Select *resolution_mode_selector_{nullptr};
+  select::Select *gate_selector_{nullptr};
 #endif
 
 #ifdef USE_SWITCH
@@ -415,6 +434,7 @@ class C4002Component : public Component, public uart::UARTDevice {
   switch_::Switch *out_led_switch_{nullptr};
   switch_::Switch *factory_reset_switch_{nullptr};
   switch_::Switch *env_calibration_switch_{nullptr};
+  switch_::Switch *show_gates_energy_switch_{nullptr};
 #endif
 
 #ifdef USE_NUMBER
@@ -424,6 +444,8 @@ class C4002Component : public Component, public uart::UARTDevice {
   number::Number *light_threshold_number_{nullptr};
   number::Number *lock_time_number_{nullptr};
   number::Number *report_period_number_{nullptr};
+  number::Number *gate_motion_thresh_number_{nullptr};
+  number::Number *gate_presence_thresh_number_{nullptr};
   number::Number *area1_min_range_number_{nullptr};
   number::Number *area1_max_range_number_{nullptr};
   number::Number *area2_min_range_number_{nullptr};

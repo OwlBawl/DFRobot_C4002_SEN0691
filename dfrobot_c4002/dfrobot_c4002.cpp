@@ -74,6 +74,22 @@ void C4002Component::get_data() {
   uint16_t countdown = get_presence_countdown();
   uint32_t active_gates = get_exist_dist_index();
 
+  std::string gates_summary = "";
+  if (this->show_gates_energy_) {
+    if (active_gates == 0) {
+      gates_summary = "None";
+    } else {
+      char buf[32];
+      for (int i = 0; i < 15; i++) {
+        if ((active_gates >> i) & 1) {
+          if (!gates_summary.empty()) gates_summary += ", ";
+          snprintf(buf, sizeof(buf), "Gate %d (%.1fm)", i, this->interval_point_[i]);
+          gates_summary += buf;
+        }
+      }
+    }
+  }
+
   for (auto &listener : this->listeners_) {
     if (listener != nullptr) {
       listener->on_movement_distance(move_taget_data.distance);
@@ -86,6 +102,9 @@ void C4002Component::get_data() {
       listener->on_existing_energy(exit_taget_data.energy);
       listener->on_presence_countdown(countdown);
       listener->on_active_gates(active_gates);
+      if (this->show_gates_energy_) {
+        listener->on_gates_summary(gates_summary);
+      }
     }
   }
 }
@@ -171,6 +190,31 @@ void C4002Component::update_config_param() {
       out_led_switch_->publish_state(out_led == LED_ON);
     }
   }
+
+#ifdef USE_SWITCH
+  if (show_gates_energy_switch_ != nullptr) {
+    show_gates_energy_switch_->publish_state(this->show_gates_energy_);
+  }
+#endif
+
+  // Read gate thresholds
+  get_distance_gate_thresh(MOVE_DIST_DOOR, motion_gate_thresh_);
+  get_distance_gate_thresh(EXIST_DIST_DOOR, presence_gate_thresh_);
+
+#ifdef USE_SELECT
+  if (this->gate_selector_ != nullptr) {
+    this->gate_selector_->publish_state("Gate 0 (0.2m)");
+  }
+#endif
+
+#ifdef USE_NUMBER
+  if (this->gate_motion_thresh_number_ != nullptr) {
+    this->gate_motion_thresh_number_->publish_state(this->motion_gate_thresh_[this->current_selected_gate_]);
+  }
+  if (this->gate_presence_thresh_number_ != nullptr) {
+    this->gate_presence_thresh_number_->publish_state(this->presence_gate_thresh_[this->current_selected_gate_]);
+  }
+#endif
 
 #ifdef USE_SELECT
   if (this->operating_selector_ != nullptr) {
@@ -1217,6 +1261,87 @@ SensitivityLevel C4002Component::get_sensitivity(DistanceDoorType door_type) {
     return (SensitivityLevel) rec_pack.data[1];
   }
   return SENS_ERROR;
+}
+
+bool C4002Component::get_distance_gate_thresh(DistanceDoorType door_type, uint8_t *gate_data) {
+  if (gate_data == nullptr) return false;
+  uint8_t send_data[10];
+  uint16_t data_len = 0;
+  uint16_t temp = 7;
+  uint8_t door_num = (this->resolution_mode_ == RESOLUTION_20CM) ? 25 : 15;
+
+  send_data[data_len++] = CMD_SET_DISTANCE_DOOR_THRESHOLD;
+  send_data[data_len++] = READ_AND_WRITE_REQ;
+  send_data[data_len++] = temp >> 0 & 0xFF;
+  send_data[data_len++] = temp >> 8 & 0xFF;
+  send_data[data_len++] = (uint8_t) door_type;
+  send_data[data_len++] = SENS_CURRENT;
+  send_data[data_len++] = 0x00;
+
+  for (int retry = 0; retry < 5; retry++) {
+    send_pack(send_data, data_len, FRAME_TYPE_READ_REQUSET);
+    RecvPack rec_pack = recv_pack();
+    if (SUCCEED == rec_pack.resPonCode) {
+      memcpy(gate_data, &rec_pack.data[3], door_num);
+      return true;
+    }
+    delay(20);
+  }
+  return false;
+}
+
+bool C4002Component::set_gate_thresh(DistanceDoorType door_type, const uint8_t *thresh) {
+  if (thresh == nullptr) return false;
+  uint8_t send_data[35];
+  uint16_t data_len = 0;
+  uint8_t door_num = (this->resolution_mode_ == RESOLUTION_20CM) ? 25 : 15;
+  uint16_t temp = 7 + door_num;
+
+  send_data[data_len++] = CMD_SET_DISTANCE_DOOR_THRESHOLD;
+  send_data[data_len++] = READ_AND_WRITE_REQ;
+  send_data[data_len++] = temp >> 0 & 0xFF;
+  send_data[data_len++] = temp >> 8 & 0xFF;
+  send_data[data_len++] = (uint8_t) door_type;
+  send_data[data_len++] = SENS_CUSTOM;
+  send_data[data_len++] = 0x01;
+
+  for (uint8_t i = 0; i < door_num; i++) {
+    send_data[data_len++] = thresh[i];
+  }
+
+  send_pack(send_data, data_len, FRAME_TYPE_WRITE_REQUSET);
+  RecvPack rec_pack = recv_pack();
+  return (SUCCEED == rec_pack.resPonCode);
+}
+
+bool C4002Component::set_single_gate_thresh(DistanceDoorType door_type, uint8_t gate_index, uint8_t value) {
+  if (gate_index >= 15) return false;
+  uint8_t *buffer = (door_type == MOVE_DIST_DOOR) ? motion_gate_thresh_ : presence_gate_thresh_;
+  buffer[gate_index] = value;
+  return set_gate_thresh(door_type, buffer);
+}
+
+uint8_t C4002Component::get_cached_gate_thresh(DistanceDoorType door_type, uint8_t gate_index) {
+  if (gate_index >= 15) return 0;
+  return (door_type == MOVE_DIST_DOOR) ? motion_gate_thresh_[gate_index] : presence_gate_thresh_[gate_index];
+}
+
+void C4002Component::select_gate_to_edit(uint8_t gate_index) {
+  if (gate_index >= 15) return;
+  this->current_selected_gate_ = gate_index;
+  if (this->gate_motion_thresh_number_ != nullptr) {
+    this->gate_motion_thresh_number_->publish_state(this->motion_gate_thresh_[gate_index]);
+  }
+  if (this->gate_presence_thresh_number_ != nullptr) {
+    this->gate_presence_thresh_number_->publish_state(this->presence_gate_thresh_[gate_index]);
+  }
+}
+
+void C4002Component::set_show_gates_energy(bool show) {
+  this->show_gates_energy_ = show;
+  if (this->show_gates_energy_switch_ != nullptr) {
+    this->show_gates_energy_switch_->publish_state(show);
+  }
 }
 
 }  // namespace dfrobot_c4002

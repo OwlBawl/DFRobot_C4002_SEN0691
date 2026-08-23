@@ -195,6 +195,9 @@ switch:
     switch_environmental_calibration:
       name: "Sensor Calibration"
       id: ${dfrobot_id}_sensor_calibration
+    switch_show_gates_energy:
+      name: "Show Gates Energy"
+      id: ${dfrobot_id}_show_gates_energy
 
 # Button configuration
 button:
@@ -229,6 +232,9 @@ select:
     resolution_mode:
       name: "Resolution Mode"
       id: ${dfrobot_id}_resolution_mode
+    gate_selector:
+      name: "Selected Distance Gate"
+      id: ${dfrobot_id}_gate_selector
 
 # Min and max detection range configuration
 number:
@@ -249,6 +255,12 @@ number:
     report_period:
       name: "Report Period"
       id: ${dfrobot_id}_report_period
+    gate_motion_threshold:
+      name: "Selected Gate Motion Threshold"
+      id: ${dfrobot_id}_gate_motion_threshold
+    gate_presence_threshold:
+      name: "Selected Gate Presence Threshold"
+      id: ${dfrobot_id}_gate_presence_threshold
     area1_min:
       name: "Area 1 Excluded Range Min"
       id: ${dfrobot_id}_area1_min

@@ -92,5 +92,12 @@ void C4002SwitchEnvironmentalCalibration::write_state(bool state) {
   }
 }
 
+void C4002SwitchShowGatesEnergy::write_state(bool state) {
+  if (this->parent_) {
+    this->parent_->set_show_gates_energy(state);
+    this->publish_state(state);
+  }
+}
+
 }  // namespace dfrobot_c4002
 }  // namespace esphome

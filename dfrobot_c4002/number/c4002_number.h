@@ -66,5 +66,15 @@ class ReportPeriodNumber : public number::Number, public Parented<C4002Component
   void control(float value) override;
 };
 
+class GateMotionThresholdNumber : public number::Number, public Parented<C4002Component> {
+ protected:
+  void control(float value) override;
+};
+
+class GatePresenceThresholdNumber : public number::Number, public Parented<C4002Component> {
+ protected:
+  void control(float value) override;
+};
+
 }  // namespace dfrobot_c4002
 }  // namespace esphome

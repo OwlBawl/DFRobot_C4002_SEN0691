@@ -9,6 +9,7 @@ CONF_SWITCH_OUT_LED = "switch_out_led"
 CONF_SWITCH_RUN_LED = "switch_run_led"
 CONF_SWITCH_FACTORY_RESET = "switch_factory_reset"
 CONF_SWITCH_ENVIRONMENTAL_CALIBRATION = "switch_environmental_calibration"
+CONF_SWITCH_SHOW_GATES_ENERGY = "switch_show_gates_energy"
 
 C4002Switch1 = dfrobot_c4002_ns.class_("C4002Switch1", switch.Switch, cg.Component)
 C4002Switch2 = dfrobot_c4002_ns.class_("C4002Switch2", switch.Switch, cg.Component)
@@ -17,6 +18,9 @@ C4002SwitchFactoryReset = dfrobot_c4002_ns.class_(
 )
 C4002SwitchEnvironmentalCalibration = dfrobot_c4002_ns.class_(
     "C4002SwitchEnvironmentalCalibration", switch.Switch, cg.Component
+)
+C4002SwitchShowGatesEnergy = dfrobot_c4002_ns.class_(
+    "C4002SwitchShowGatesEnergy", switch.Switch
 )
 
 CONFIG_SCHEMA = {
@@ -44,6 +48,12 @@ CONFIG_SCHEMA = {
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,
         icon="mdi:leaf",
+    ),
+    cv.Optional(CONF_SWITCH_SHOW_GATES_ENERGY): switch.switch_schema(
+        C4002SwitchShowGatesEnergy,
+        device_class=DEVICE_CLASS_SWITCH,
+        entity_category=ENTITY_CATEGORY_CONFIG,
+        icon="mdi:radar",
     ),
 }
 
@@ -86,3 +96,9 @@ async def to_code(config):
                 sw_environmental_calibration
             )
         )
+
+    if show_gates_config := config.get(CONF_SWITCH_SHOW_GATES_ENERGY):
+        sw_show_gates = await switch.new_switch(show_gates_config)
+        await cg.register_parented(sw_show_gates, config[CONF_C4002_ID])
+        cg.add(switch_component.set_show_gates_energy_switch(sw_show_gates))
+

@@ -204,5 +204,27 @@ void ReportPeriodNumber::control(float value) {
   }
 }
 
+void GateMotionThresholdNumber::control(float value) {
+  if (this->parent_) {
+    uint8_t gate = this->parent_->get_current_selected_gate();
+    if (this->parent_->set_single_gate_thresh(MOVE_DIST_DOOR, gate, (uint8_t) value)) {
+      this->publish_state(value);
+    } else {
+      this->publish_state(this->parent_->get_cached_gate_thresh(MOVE_DIST_DOOR, gate));
+    }
+  }
+}
+
+void GatePresenceThresholdNumber::control(float value) {
+  if (this->parent_) {
+    uint8_t gate = this->parent_->get_current_selected_gate();
+    if (this->parent_->set_single_gate_thresh(EXIST_DIST_DOOR, gate, (uint8_t) value)) {
+      this->publish_state(value);
+    } else {
+      this->publish_state(this->parent_->get_cached_gate_thresh(EXIST_DIST_DOOR, gate));
+    }
+  }
+}
+
 }  // namespace dfrobot_c4002
 }  // namespace esphome
