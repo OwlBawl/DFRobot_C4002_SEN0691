@@ -1,0 +1,18 @@
+# Secrets and credentials
+secrets.yaml
+*secrets*.yaml
+*.key
+*.pem
+*.token
+
+# ESPHome build & cache
+.esphome/
+build/
+.pio/
+.pioenvs/
+
+# OS and editor files
+.DS_Store
+*.swp
+*.log
+.vscode/
