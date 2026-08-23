@@ -1,0 +1,28 @@
+substitutions:
+
+  esp_name: "presence-c4002-test" # Change THIS
+  esp_friendly: "Presence C4002 Test" # Change THIS
+
+  dfrobot_name: "DFRobot C4002 Test" # Change THIS
+  dfrobot_id: "c4002_test" # Change THIS
+  dfrobot_uart: c4002_uart
+  dfrobot_topic_prefix: dfrobot-presence
+
+  ipstatic: 10.10.20.163 # Change THIS
+
+esp32:
+  board: lolin_s2_mini
+  variant: esp32s2
+  framework:
+    type: esp-idf
+
+uart:
+  #DFRobot
+  - id: ${dfrobot_uart}
+    tx_pin: GPIO16
+    rx_pin: GPIO18
+    baud_rate: 115200 # Change this according to your setting
+    parity: NONE
+    stop_bits: 1
+
+<<: !include .base_c4002.yaml

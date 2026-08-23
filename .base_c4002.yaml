@@ -1,0 +1,210 @@
+# DFRobot C4002 configuration base ESPhome
+
+esphome:
+  name: ${esp_name}
+  friendly_name: ${esp_friendly}
+
+logger:
+  level: INFO
+  baud_rate: 0 #Important. You can't use serial port
+#  hardware_uart: UART0
+
+debug:
+  update_interval: 30s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  output_power: 15dB
+  reboot_timeout: 10min
+
+  #important, otherwise the IP could change and then the entity is unavailable from home assistant.
+#  manual_ip: #Change THIS
+#    static_ip: ${ipstatic}
+#    gateway: 10.10.20.1
+#   subnet: 255.255.255.0
+
+# Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: ${esp_friendly}
+    password: !secret ap_wifi_pass
+captive_portal:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_key
+    
+ota:
+  - platform: esphome
+
+# Web config
+#web_server:
+#  include_internal: true
+#  ota: false
+
+#mqtt:
+# DFRobot
+#  broker: !secret ha_mqtt_ip
+#  username: !secret ha_mqtt_user
+#  password: !secret ha_mqtt_pass
+#  discovery: false
+#  client_id: ${dfrobot_id}
+#  topic_prefix: null
+#  id: ${dfrobot_id}_mqtt
+
+# External components
+external_components:
+  - source:
+      type: git
+      url: https://github.com/OwlBawl/DFRobot_C4002_SEN0691.git
+      ref: main
+      path: .
+    components:
+      dfrobot_c4002
+    refresh: 0s
+
+# external_components:
+#   - source:
+#       type: local
+#       path: custom_components
+
+# C4002
+dfrobot_c4002:
+  id: ${dfrobot_id}
+  uart_id: ${dfrobot_uart}
+
+binary_sensor:
+  - platform: gpio
+    pin: GPIO33
+    name: "Out Pin Presence"
+    id: ${dfrobot_id}_out_presence
+    device_class: presence
+
+# Sensor configuration
+sensor:
+  - platform: dfrobot_c4002
+    c4002_id: ${dfrobot_id}
+    movement_distance:
+      name: "Motion Distance"
+      id: ${dfrobot_id}_movement_distance_sensor
+    existing_distance:
+      name: "Presence Distance"
+      id: ${dfrobot_id}_existing_distance_sensor
+    movement_speed:
+      name: "Motion Speed"
+      id: ${dfrobot_id}_movement_speed_sensor
+    movement_direction:
+      name: "Motion Direction"
+      id: ${dfrobot_id}_movement_direction_sensor
+      internal: true
+    target_status:
+      name: "Target Status"
+      id: ${dfrobot_id}_target_status_sensor
+      internal: true
+
+text_sensor:
+  - platform: template
+    name: "Movement Direction"
+    id: ${dfrobot_id}_movement_direction_text
+    icon: "mdi:directions"
+    lambda: |-
+      int d = id(${dfrobot_id}_movement_direction_sensor).state;
+      if (d == 0) return {"Away"};
+      else if (d == 1) return {"No Direction"};
+      else if (d == 2) return {"Approaching"};
+      else return {"Unknown"};
+    update_interval: 1s
+
+  - platform: template
+    name: "Target Status"
+    id: ${dfrobot_id}_target_status_text
+    icon: "mdi:human-greeting"
+    lambda: |-
+      int d = id(${dfrobot_id}_target_status_sensor).state;
+      if (d == 0) return {"No Target"};
+      else if (d == 1) return {"Static Presence"};
+      else if (d == 2) return {"Motion"};
+      else return {"Unknown"};
+    update_interval: 0.5s
+
+  - platform: dfrobot_c4002
+    c4002_id: ${dfrobot_id}
+    c4002_text_sensor:
+      name: "Log"
+      id: ${dfrobot_id}_log
+      icon: "mdi:message-text-outline"
+
+# Switch configuration
+switch:
+  - platform: dfrobot_c4002
+    c4002_id: ${dfrobot_id}
+    switch_out_led:
+      name: "Out LED Switch"
+      id: ${dfrobot_id}_out_led
+    switch_run_led:
+      name: "Run LED Switch"
+      id: ${dfrobot_id}_run_led
+    switch_factory_reset:
+      name: "Factory Reset"
+      id: ${dfrobot_id}_factory_reset
+    switch_environmental_calibration:
+      name: "Sensor Calibration"
+      id: ${dfrobot_id}_sensor_calibration
+
+# Select configuration
+select:
+  - platform: template
+    name: "OUT Mode"
+    id: ${dfrobot_id}_out_mode_select
+    icon: "mdi:account"
+    options:
+      - "Motion Only"
+      - "Presence Only"
+      - "Motion OR Presence"
+    initial_option: "Motion OR Presence"
+    optimistic: true
+    set_action:
+      - lambda: |-
+          if (x == "Motion Only") {
+            id(${dfrobot_id}).set_out_mode(esphome::dfrobot_c4002::OUT_MODE1);
+          } else if (x == "Presence Only") {
+            id(${dfrobot_id}).set_out_mode(esphome::dfrobot_c4002::OUT_MODE2);
+          } else if (x == "Motion OR Presence") {
+            id(${dfrobot_id}).set_out_mode(esphome::dfrobot_c4002::OUT_MODE3);
+          }
+
+# Min and max detection range configuration
+number:
+  - platform: dfrobot_c4002
+    c4002_id: ${dfrobot_id}
+    max_range:
+      name: "Max Detection Distance"
+      id: ${dfrobot_id}_max_range
+    min_range:
+      name: "Min Detection Distance"
+      id: ${dfrobot_id}_min_range
+    light_threshold:
+      name: "Light Threshold"
+      id: ${dfrobot_id}_light_threshold
+    area1_min:
+      name: "Area 1 Excluded Range Min"
+      id: ${dfrobot_id}_area1_min
+    area1_max:
+      name: "Area 1 Excluded Range Max"
+      id: ${dfrobot_id}_area1_max
+    area2_min:
+      name: "Area 2 Excluded Range Min"
+      id: ${dfrobot_id}_area2_min
+    area2_max:
+      name: "Area 2 Excluded Range Max"
+      id: ${dfrobot_id}_area2_max
+    area3_min:
+      name: "Area 3 Excluded Range Min"
+      id: ${dfrobot_id}_area3_min
+    area3_max:
+      name: "Area 3 Excluded Range Max"
+      id: ${dfrobot_id}_area3_max
+    target_disappeard_delay_time:
+      name: "Target Disappear Delay Time"
+      id: ${dfrobot_id}_target_disappeard_delay_time
