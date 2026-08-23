@@ -319,7 +319,7 @@ class C4002Component : public Component, public uart::UARTDevice {
   void send_pack(void *pdata, uint16_t len, uint8_t msg_type);
   RecvPck recv_pack();
   bool check_sum(const uint8_t *pdata, uint8_t len);
-  uint16_t get_check_sum(const uint8_t *pdata, uint8_t len);
+  uint16_t get_check_sum(const uint8_t *pdata, uint16_t len);
   size_t uart_read_raw(uint8_t *buf, size_t bufsize, uint32_t timeout_ms = 200);
   void uart_write_data(uint8_t *datas, size_t len);
 
