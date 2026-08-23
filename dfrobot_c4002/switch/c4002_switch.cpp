@@ -84,7 +84,8 @@ void C4002SwitchEnvironmentalCalibration::write_state(bool state) {
 
       this->set_timeout(18000, [this]() {
         this->publish_state(false);
-        ESP_LOGD(TAG, "Environmental calibration completed, switch auto-reset to OFF");
+        ESP_LOGD(TAG, "Environmental calibration completed, auto-refreshing parameters");
+        this->parent_->update_config_param();
       });
     } else {
       this->publish_state(false);

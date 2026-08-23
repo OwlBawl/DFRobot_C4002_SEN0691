@@ -238,28 +238,39 @@ void C4002Component::update_config_param() {
     }
   }
 
+  auto are_gates_uniform = [](const uint8_t *thresh, size_t count = 15) -> bool {
+    for (size_t i = 1; i < count; i++) {
+      if (thresh[i] != thresh[0]) return false;
+    }
+    return true;
+  };
+
   if (this->motion_sensitivity_selector_ != nullptr) {
     SensitivityLevel sens = get_sensitivity(MOVE_DIST_DOOR);
-    if (sens == SENS_LOW) {
+    if (!are_gates_uniform(this->motion_gate_thresh_) || sens == SENS_CUSTOM) {
+      this->motion_sensitivity_selector_->publish_state("Custom");
+    } else if (sens == SENS_LOW) {
       this->motion_sensitivity_selector_->publish_state("High");
     } else if (sens == SENS_MID) {
       this->motion_sensitivity_selector_->publish_state("Medium");
     } else if (sens == SENS_HIGH) {
       this->motion_sensitivity_selector_->publish_state("Low");
-    } else if (sens == SENS_CUSTOM) {
+    } else {
       this->motion_sensitivity_selector_->publish_state("Custom");
     }
   }
 
   if (this->presence_sensitivity_selector_ != nullptr) {
     SensitivityLevel sens = get_sensitivity(EXIST_DIST_DOOR);
-    if (sens == SENS_LOW) {
+    if (!are_gates_uniform(this->presence_gate_thresh_) || sens == SENS_CUSTOM) {
+      this->presence_sensitivity_selector_->publish_state("Custom");
+    } else if (sens == SENS_LOW) {
       this->presence_sensitivity_selector_->publish_state("High");
     } else if (sens == SENS_MID) {
       this->presence_sensitivity_selector_->publish_state("Medium");
     } else if (sens == SENS_HIGH) {
       this->presence_sensitivity_selector_->publish_state("Low");
-    } else if (sens == SENS_CUSTOM) {
+    } else {
       this->presence_sensitivity_selector_->publish_state("Custom");
     }
   }
