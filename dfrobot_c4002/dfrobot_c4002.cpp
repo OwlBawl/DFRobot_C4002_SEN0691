@@ -154,9 +154,11 @@ void C4002Component::update_config_param() {
   }
 
   if (report_period_number_ != nullptr) {
-    if (std::isnan(report_period_number_->state)) {
-      report_period_number_->publish_state(1.0f);
+    float cur_val = report_period_number_->has_state() ? report_period_number_->state : 1.0f;
+    if (std::isnan(cur_val) || cur_val <= 0.0f) {
+      cur_val = 1.0f;
     }
+    report_period_number_->publish_state(cur_val);
   }
 
   LedMode run_led = LED_KEEP;
