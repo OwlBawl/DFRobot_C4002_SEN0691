@@ -232,11 +232,11 @@ void C4002Component::update_config_param() {
   if (this->motion_sensitivity_selector_ != nullptr) {
     SensitivityLevel sens = get_sensitivity(MOVE_DIST_DOOR);
     if (sens == SENS_LOW) {
-      this->motion_sensitivity_selector_->publish_state("Low");
+      this->motion_sensitivity_selector_->publish_state("High");
     } else if (sens == SENS_MID) {
       this->motion_sensitivity_selector_->publish_state("Medium");
     } else if (sens == SENS_HIGH) {
-      this->motion_sensitivity_selector_->publish_state("High");
+      this->motion_sensitivity_selector_->publish_state("Low");
     } else if (sens == SENS_CUSTOM) {
       this->motion_sensitivity_selector_->publish_state("Custom");
     }
@@ -245,11 +245,11 @@ void C4002Component::update_config_param() {
   if (this->presence_sensitivity_selector_ != nullptr) {
     SensitivityLevel sens = get_sensitivity(EXIST_DIST_DOOR);
     if (sens == SENS_LOW) {
-      this->presence_sensitivity_selector_->publish_state("Low");
+      this->presence_sensitivity_selector_->publish_state("High");
     } else if (sens == SENS_MID) {
       this->presence_sensitivity_selector_->publish_state("Medium");
     } else if (sens == SENS_HIGH) {
-      this->presence_sensitivity_selector_->publish_state("High");
+      this->presence_sensitivity_selector_->publish_state("Low");
     } else if (sens == SENS_CUSTOM) {
       this->presence_sensitivity_selector_->publish_state("Custom");
     }

@@ -32,11 +32,11 @@ void MotionSensitivitySelect::control(const std::string &value) {
   if (this->parent_) {
     SensitivityLevel level = SENS_MID;
     if (value == "Low") {
-      level = SENS_LOW;
+      level = SENS_HIGH;  // 0x02: High threshold = Low sensitivity
     } else if (value == "Medium") {
-      level = SENS_MID;
+      level = SENS_MID;   // 0x01: Mid threshold = Medium sensitivity
     } else if (value == "High") {
-      level = SENS_HIGH;
+      level = SENS_LOW;   // 0x00: Low threshold = High sensitivity
     } else if (value == "Custom") {
       level = SENS_CUSTOM;
     }
@@ -53,11 +53,11 @@ void PresenceSensitivitySelect::control(const std::string &value) {
   if (this->parent_) {
     SensitivityLevel level = SENS_MID;
     if (value == "Low") {
-      level = SENS_LOW;
+      level = SENS_HIGH;  // 0x02: High threshold = Low sensitivity
     } else if (value == "Medium") {
-      level = SENS_MID;
+      level = SENS_MID;   // 0x01: Mid threshold = Medium sensitivity
     } else if (value == "High") {
-      level = SENS_HIGH;
+      level = SENS_LOW;   // 0x00: Low threshold = High sensitivity
     } else if (value == "Custom") {
       level = SENS_CUSTOM;
     }
