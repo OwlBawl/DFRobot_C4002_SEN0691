@@ -229,6 +229,10 @@ text_sensor:
       name: "Log"
       id: ${dfrobot_id}_log
       icon: "mdi:message-text-outline"
+    active_gates_summary:
+      name: "Active Gates Track"
+      id: ${dfrobot_id}_active_gates_summary
+      icon: "mdi:radar"
 
 # Switch configuration
 switch:

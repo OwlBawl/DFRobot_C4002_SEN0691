@@ -77,15 +77,24 @@ void C4002Component::get_data() {
   std::string gates_summary = "";
   if (this->show_gates_energy_) {
     if (active_gates == 0) {
-      gates_summary = "None";
+      gates_summary = "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 (Clear)";
     } else {
+      int first_active = -1;
+      int last_active = -1;
       char buf[32];
       for (int i = 0; i < 15; i++) {
         if ((active_gates >> i) & 1) {
-          if (!gates_summary.empty()) gates_summary += ", ";
-          snprintf(buf, sizeof(buf), "Gate %d (%.1fm)", i, this->interval_point_[i]);
-          gates_summary += buf;
+          if (first_active == -1) first_active = i;
+          last_active = i;
+          snprintf(buf, sizeof(buf), "[%d🟢] ", i);
+        } else {
+          snprintf(buf, sizeof(buf), "%d ", i);
         }
+        gates_summary += buf;
+      }
+      if (first_active != -1 && last_active != -1) {
+        snprintf(buf, sizeof(buf), "(%.1fm - %.1fm)", this->interval_point_[first_active], this->interval_point_[last_active]);
+        gates_summary += buf;
       }
     }
   }
