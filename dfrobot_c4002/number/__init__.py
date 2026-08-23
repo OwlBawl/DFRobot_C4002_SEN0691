@@ -29,33 +29,19 @@ MinDetectRangeNumber = dfrobot_c4002_ns.class_("MinDetectRangeNumber", number.Nu
 MaxRDetectangeNumber = dfrobot_c4002_ns.class_("MaxDetectRangeNumber", number.Number)
 LightThresholdNumber = dfrobot_c4002_ns.class_("LightThresholdNumber", number.Number)
 
-Area1MinRangeNumber = dfrobot_c4002_ns.class_(
-    "Area1MinRangeNumber", number.Number, cg.Component
-)
-Area1MaxRangeNumber = dfrobot_c4002_ns.class_(
-    "Area1MaxRangeNumber", number.Number, cg.Component
-)
+Area1MinRangeNumber = dfrobot_c4002_ns.class_("Area1MinRangeNumber", number.Number)
+Area1MaxRangeNumber = dfrobot_c4002_ns.class_("Area1MaxRangeNumber", number.Number)
 
-Area2MinRangeNumber = dfrobot_c4002_ns.class_(
-    "Area2MinRangeNumber", number.Number, cg.Component
-)
-Area2MaxRangeNumber = dfrobot_c4002_ns.class_(
-    "Area2MaxRangeNumber", number.Number, cg.Component
-)
+Area2MinRangeNumber = dfrobot_c4002_ns.class_("Area2MinRangeNumber", number.Number)
+Area2MaxRangeNumber = dfrobot_c4002_ns.class_("Area2MaxRangeNumber", number.Number)
 
-Area3MinRangeNumber = dfrobot_c4002_ns.class_(
-    "Area3MinRangeNumber", number.Number, cg.Component
-)
-Area3MaxRangeNumber = dfrobot_c4002_ns.class_(
-    "Area3MaxRangeNumber", number.Number, cg.Component
-)
+Area3MinRangeNumber = dfrobot_c4002_ns.class_("Area3MinRangeNumber", number.Number)
+Area3MaxRangeNumber = dfrobot_c4002_ns.class_("Area3MaxRangeNumber", number.Number)
 TargetDisappeardDelayTimeNumber = dfrobot_c4002_ns.class_(
     "TargetDisappeardDelayTimeNumber", number.Number
 )
 LockTimeNumber = dfrobot_c4002_ns.class_("LockTimeNumber", number.Number)
-ReportPeriodNumber = dfrobot_c4002_ns.class_(
-    "ReportPeriodNumber", number.Number, cg.Component
-)
+ReportPeriodNumber = dfrobot_c4002_ns.class_("ReportPeriodNumber", number.Number)
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -172,7 +158,6 @@ async def to_code(config):
         n = await number.new_number(
             area1_min_config, min_value=0, max_value=11.6, step=0.8
         )
-        await cg.register_component(n, area1_min_config)
         await cg.register_parented(n, config[CONF_C4002_ID])
         cg.add(number_component.set_area1_min_range_number(n))
 
@@ -181,7 +166,6 @@ async def to_code(config):
         n = await number.new_number(
             area1_max_config, min_value=0, max_value=11.6, step=0.8
         )
-        await cg.register_component(n, area1_max_config)
         await cg.register_parented(n, config[CONF_C4002_ID])
         cg.add(number_component.set_area1_max_range_number(n))
 
@@ -190,7 +174,6 @@ async def to_code(config):
         n = await number.new_number(
             area2_min_config, min_value=0, max_value=11.6, step=0.8
         )
-        await cg.register_component(n, area2_min_config)
         await cg.register_parented(n, config[CONF_C4002_ID])
         cg.add(number_component.set_area2_min_range_number(n))
 
@@ -199,7 +182,6 @@ async def to_code(config):
         n = await number.new_number(
             area2_max_config, min_value=0, max_value=11.6, step=0.8
         )
-        await cg.register_component(n, area2_max_config)
         await cg.register_parented(n, config[CONF_C4002_ID])
         cg.add(number_component.set_area2_max_range_number(n))
 
@@ -208,7 +190,6 @@ async def to_code(config):
         n = await number.new_number(
             area3_min_config, min_value=0, max_value=11.6, step=0.8
         )
-        await cg.register_component(n, area3_min_config)
         await cg.register_parented(n, config[CONF_C4002_ID])
         cg.add(number_component.set_area3_min_range_number(n))
 
@@ -217,7 +198,6 @@ async def to_code(config):
         n = await number.new_number(
             area3_max_config, min_value=0, max_value=11.6, step=0.8
         )
-        await cg.register_component(n, area3_max_config)
         await cg.register_parented(n, config[CONF_C4002_ID])
         cg.add(number_component.set_area3_max_range_number(n))
 
@@ -241,6 +221,5 @@ async def to_code(config):
         n = await number.new_number(
             report_period_config, min_value=0.1, max_value=25.5, step=0.1
         )
-        await cg.register_component(n, report_period_config)
         await cg.register_parented(n, config[CONF_C4002_ID])
         cg.add(number_component.set_report_period_number(n))
