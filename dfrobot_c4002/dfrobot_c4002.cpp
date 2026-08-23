@@ -1342,6 +1342,14 @@ void C4002Component::set_show_gates_energy(bool show) {
   if (this->show_gates_energy_switch_ != nullptr) {
     this->show_gates_energy_switch_->publish_state(show);
   }
+  if (!show) {
+    for (auto &listener : this->listeners_) {
+      if (listener != nullptr) {
+        listener->on_active_gates(0);
+        listener->on_gates_summary("Disabled");
+      }
+    }
+  }
 }
 
 }  // namespace dfrobot_c4002
