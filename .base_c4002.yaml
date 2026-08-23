@@ -75,6 +75,11 @@ dfrobot_c4002:
   uart_id: ${dfrobot_uart}
 
 binary_sensor:
+  # Common
+  - platform: status
+    name: ESP Online
+    id: ha_connected
+  # C4002
   - platform: gpio
     pin: GPIO33
     name: "Out Pin Presence"
@@ -83,6 +88,33 @@ binary_sensor:
 
 # Sensor configuration
 sensor:
+  # Common
+  - platform: wifi_signal
+    name: "ESP WiFi RSSI"
+    id: wifi_signal_rssi
+    update_interval: 60s
+    entity_category: "diagnostic" 
+  - platform: internal_temperature
+    name: "ESP Temperature"
+    unit_of_measurement: °C
+    device_class: TEMPERATURE
+    update_interval: 30s
+    entity_category: "diagnostic"
+  - platform: uptime
+    name: "ESP Uptime"
+    id: sys_uptime
+    update_interval: 60s
+  - platform: debug
+    free:
+      id: esp_memory
+      icon: mdi:memory
+      name: ESP Free Memory
+      filters:
+        - lambda: return x / 1024;
+      unit_of_measurement: 'kB'
+      state_class: measurement
+      entity_category: "diagnostic"
+  # C4002
   - platform: dfrobot_c4002
     c4002_id: ${dfrobot_id}
     movement_distance:
@@ -166,6 +198,12 @@ switch:
 
 # Button configuration
 button:
+  # Common
+  - platform: restart
+    name: "ESP Restart"
+  - platform: safe_mode
+    name: "ESP Restart (Safe Mode)"
+  # C4002
   - platform: dfrobot_c4002
     c4002_id: ${dfrobot_id}
     refresh_parameters:
