@@ -14,13 +14,9 @@ C4002RefreshButton = dfrobot_c4002_ns.class_(
 C4002FactoryResetButton = dfrobot_c4002_ns.class_(
     "C4002FactoryResetButton", button.Button, cg.Component
 )
-C4002FactoryReset2Button = dfrobot_c4002_ns.class_(
-    "C4002FactoryReset2Button", button.Button, cg.Component
-)
 
 CONF_REFRESH_PARAMETERS = "refresh_parameters"
 CONF_FACTORY_RESET = "factory_reset"
-CONF_FACTORY_RESET_2 = "factory_reset_2"
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -36,12 +32,6 @@ CONFIG_SCHEMA = cv.Schema(
             entity_category=ENTITY_CATEGORY_CONFIG,
             icon="mdi:restore",
         ),
-        cv.Optional(CONF_FACTORY_RESET_2): button.button_schema(
-            C4002FactoryReset2Button,
-            device_class=DEVICE_CLASS_RESTART,
-            entity_category=ENTITY_CATEGORY_CONFIG,
-            icon="mdi:restore-alert",
-        ),
     }
 )
 
@@ -53,8 +43,4 @@ async def to_code(config):
 
     if factory_reset_config := config.get(CONF_FACTORY_RESET):
         b = await button.new_button(factory_reset_config)
-        await cg.register_parented(b, config[CONF_C4002_ID])
-
-    if factory_reset_2_config := config.get(CONF_FACTORY_RESET_2):
-        b = await button.new_button(factory_reset_2_config)
         await cg.register_parented(b, config[CONF_C4002_ID])
