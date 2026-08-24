@@ -20,7 +20,7 @@ C4002SwitchEnvironmentalCalibration = dfrobot_c4002_ns.class_(
     "C4002SwitchEnvironmentalCalibration", switch.Switch, cg.Component
 )
 C4002SwitchShowGatesEnergy = dfrobot_c4002_ns.class_(
-    "C4002SwitchShowGatesEnergy", switch.Switch
+    "C4002SwitchShowGatesEnergy", switch.Switch, cg.Component
 )
 
 CONFIG_SCHEMA = {
