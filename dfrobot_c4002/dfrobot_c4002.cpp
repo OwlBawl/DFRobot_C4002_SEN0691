@@ -400,6 +400,42 @@ bool C4002Component::factory_reset() {
 }
 
 /**
+ * factory_reset_2
+ * Test the reset sequence used by cdjq/Home_Assistant_C4002: factory reset,
+ * then user-settings reset, followed by a restart.
+ */
+bool C4002Component::factory_reset_2() {
+  uint8_t send_date[10];
+  uint16_t data_len = 5;
+
+  send_date[0] = CMD_FACTORY_RESET;
+  send_date[1] = READ_AND_WRITE_REQ;
+  send_date[2] = data_len >> 0 & 0xFF;
+  send_date[3] = data_len >> 8 & 0xFF;
+  send_date[4] = 0x00;
+  send_pack(send_date, data_len, FRAME_TYPE_WRITE_REQUSET);
+
+  RecvPack rec_pack = recv_pack();
+  if (SUCCEED != rec_pack.resPonCode) {
+    ESP_LOGW(TAG, "Factory reset 2 factory command failed: 0x%02X", static_cast<unsigned>(rec_pack.resPonCode));
+    return false;
+  }
+  ESP_LOGD(TAG, "Factory reset 2 factory command acknowledged");
+  delay(10);
+
+  send_date[0] = CMD_FACTORY_RESET_USER;
+  send_pack(send_date, data_len, FRAME_TYPE_WRITE_REQUSET);
+  rec_pack = recv_pack();
+  if (SUCCEED != rec_pack.resPonCode) {
+    ESP_LOGW(TAG, "Factory reset 2 user-settings command failed: 0x%02X", static_cast<unsigned>(rec_pack.resPonCode));
+    return false;
+  }
+  ESP_LOGD(TAG, "Factory reset 2 user-settings command acknowledged");
+  reset_flag_ = 1;
+  return true;
+}
+
+/**
  * set_resolution_mode
  * Set the resolution mode of the device.
  * Returns true if successful, false otherwise.

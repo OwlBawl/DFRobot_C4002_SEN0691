@@ -193,6 +193,9 @@ button:
     factory_reset:
       name: "Factory Reset"
       id: ${dfrobot_id}_factory_reset
+    factory_reset_2:
+      name: "Factory Reset 2"
+      id: ${dfrobot_id}_factory_reset_2
 
 # Select configuration
 select:
