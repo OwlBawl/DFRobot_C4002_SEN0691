@@ -79,12 +79,21 @@ binary_sensor:
   - platform: status
     name: ESP Online
     id: ha_connected
-  # C4002 Out Pin
+  # C4002 Out Pin (Hardware GPIO)
   - platform: gpio
     pin: GPIO33
     name: "Out Pin Presence"
     id: ${dfrobot_id}_out_presence
     device_class: presence
+  # Native C4002 Event-Driven Motion & Presence (HomeKit-Compatible)
+  - platform: dfrobot_c4002
+    c4002_id: ${dfrobot_id}
+    motion:
+      name: "Motion"
+      id: ${dfrobot_id}_motion
+    presence:
+      name: "Presence"
+      id: ${dfrobot_id}_presence
 
 # Sensor configuration
 sensor:
@@ -162,18 +171,6 @@ text_sensor:
       else if (d == 2) return {"Approaching"};
       else return {"Unknown"};
     update_interval: 1s
-
-  - platform: template
-    name: "Target Status"
-    id: ${dfrobot_id}_target_status_text
-    icon: "mdi:human-greeting"
-    lambda: |-
-      int d = id(${dfrobot_id}_target_status_sensor).state;
-      if (d == 0) return {"No Target"};
-      else if (d == 1) return {"Static Presence"};
-      else if (d == 2) return {"Motion"};
-      else return {"Unknown"};
-    update_interval: 0.5s
 
   - platform: dfrobot_c4002
     c4002_id: ${dfrobot_id}
