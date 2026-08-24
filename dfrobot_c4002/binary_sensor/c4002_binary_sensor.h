@@ -15,6 +15,15 @@ class C4002BinarySensorHub : public C4002Listener, public Component {
     }
   }
 
+  void setup() override {
+    if (this->motion_sensor_ != nullptr) {
+      this->motion_sensor_->publish_initial_state(false);
+    }
+    if (this->presence_sensor_ != nullptr) {
+      this->presence_sensor_->publish_initial_state(false);
+    }
+  }
+
   void set_motion_binary_sensor(binary_sensor::BinarySensor *bs) { this->motion_sensor_ = bs; }
   void set_presence_binary_sensor(binary_sensor::BinarySensor *bs) { this->presence_sensor_ = bs; }
 
