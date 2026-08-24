@@ -99,6 +99,6 @@ async def to_code(config):
 
     if show_gates_config := config.get(CONF_SWITCH_SHOW_GATES_ENERGY):
         sw_show_gates = await switch.new_switch(show_gates_config)
+        await cg.register_component(sw_show_gates, show_gates_config)
         await cg.register_parented(sw_show_gates, config[CONF_C4002_ID])
         cg.add(switch_component.set_show_gates_energy_switch(sw_show_gates))
-

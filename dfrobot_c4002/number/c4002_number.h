@@ -67,13 +67,25 @@ class ReportPeriodNumber : public number::Number, public Parented<C4002Component
 };
 
 class GateMotionThresholdNumber : public number::Number, public Parented<C4002Component> {
+ public:
+  void set_gate_index(uint8_t gate_index) { gate_index_ = gate_index; }
+
  protected:
   void control(float value) override;
+
+ private:
+  uint8_t gate_index_;
 };
 
 class GatePresenceThresholdNumber : public number::Number, public Parented<C4002Component> {
+ public:
+  void set_gate_index(uint8_t gate_index) { gate_index_ = gate_index; }
+
  protected:
   void control(float value) override;
+
+ private:
+  uint8_t gate_index_;
 };
 
 }  // namespace dfrobot_c4002

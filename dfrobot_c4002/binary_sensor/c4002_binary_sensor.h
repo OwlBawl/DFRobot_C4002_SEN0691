@@ -44,31 +44,10 @@ class C4002BinarySensorHub : public C4002Listener, public Component {
     }
   }
 
-  void set_gate_binary_sensor(uint8_t gate, binary_sensor::BinarySensor *bs) {
-    if (gate < 15) {
-      this->gate_sensors_[gate] = bs;
-    }
-  }
-
-  void on_active_gates(uint32_t bitmask) override {
-    if (this->parent_ == nullptr || !this->parent_->get_show_gates_energy()) {
-      return;
-    }
-    for (uint8_t i = 0; i < 15; i++) {
-      if (this->gate_sensors_[i] != nullptr) {
-        bool active = ((bitmask >> i) & 1) != 0;
-        if (this->gate_sensors_[i]->state != active) {
-          this->gate_sensors_[i]->publish_state(active);
-        }
-      }
-    }
-  }
-
  protected:
   C4002Component *parent_{nullptr};
   binary_sensor::BinarySensor *motion_sensor_{nullptr};
   binary_sensor::BinarySensor *presence_sensor_{nullptr};
-  binary_sensor::BinarySensor *gate_sensors_[15]{nullptr};
 };
 
 }  // namespace dfrobot_c4002

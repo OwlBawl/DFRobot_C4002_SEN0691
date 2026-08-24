@@ -82,17 +82,5 @@ void ResolutionModeSelect::control(const std::string &value) {
   }
 }
 
-void GateSelect::control(const std::string &value) {
-  if (this->parent_) {
-    int gate_idx = 0;
-    if (sscanf(value.c_str(), "Gate %d", &gate_idx) == 1) {
-      if (gate_idx >= 0 && gate_idx < 15) {
-        this->parent_->select_gate_to_edit((uint8_t) gate_idx);
-        this->publish_state(value);
-      }
-    }
-  }
-}
-
 }  // namespace dfrobot_c4002
 }  // namespace esphome

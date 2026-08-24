@@ -39,13 +39,5 @@ class ResolutionModeSelect : public Component, public select::Select, public Par
   void control(const std::string &value) override;
 };
 
-class GateSelect : public Component, public select::Select, public Parented<C4002Component> {
- public:
-  GateSelect() = default;
-
- protected:
-  void control(const std::string &value) override;
-};
-
 }  // namespace dfrobot_c4002
 }  // namespace esphome

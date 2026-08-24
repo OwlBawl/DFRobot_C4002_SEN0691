@@ -27,8 +27,6 @@ class C4002Sensor : public C4002Listener, public Component, sensor::Sensor {
       this->existing_energy_->publish_state(0.0f);
     if (presence_countdown_)
       this->presence_countdown_->publish_state(0.0f);
-    if (active_gates_)
-      this->active_gates_->publish_state(0.0f);
   }
   void set_movement_distance_sensor(sensor::Sensor *sensor) { this->movement_distance_ = sensor; }
   void set_existing_distance_sensor(sensor::Sensor *sensor) { this->existing_distance_ = sensor; }
@@ -39,7 +37,6 @@ class C4002Sensor : public C4002Listener, public Component, sensor::Sensor {
   void set_movement_energy_sensor(sensor::Sensor *sensor) { this->movement_energy_ = sensor; }
   void set_existing_energy_sensor(sensor::Sensor *sensor) { this->existing_energy_ = sensor; }
   void set_presence_countdown_sensor(sensor::Sensor *sensor) { this->presence_countdown_ = sensor; }
-  void set_active_gates_sensor(sensor::Sensor *sensor) { this->active_gates_ = sensor; }
 
   void on_movement_distance(float distance) override {
     if (this->movement_distance_ != nullptr) {
@@ -113,14 +110,6 @@ class C4002Sensor : public C4002Listener, public Component, sensor::Sensor {
     }
   }
 
-  void on_active_gates(uint32_t bitmask) override {
-    if (this->active_gates_ != nullptr) {
-      if (this->active_gates_->get_state() != bitmask) {
-        this->active_gates_->publish_state(bitmask);
-      }
-    }
-  }
-
  protected:
   sensor::Sensor *movement_distance_{nullptr};
   sensor::Sensor *existing_distance_{nullptr};
@@ -131,7 +120,6 @@ class C4002Sensor : public C4002Listener, public Component, sensor::Sensor {
   sensor::Sensor *movement_energy_{nullptr};
   sensor::Sensor *existing_energy_{nullptr};
   sensor::Sensor *presence_countdown_{nullptr};
-  sensor::Sensor *active_gates_{nullptr};
 };
 
 }  // namespace dfrobot_c4002

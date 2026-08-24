@@ -88,10 +88,20 @@ void C4002SwitchEnvironmentalCalibration::write_state(bool state) {
   }
 }
 
+void C4002SwitchShowGatesEnergy::setup() {
+  this->publish_state(false);
+}
+
 void C4002SwitchShowGatesEnergy::write_state(bool state) {
   if (this->parent_) {
+    this->cancel_timeout("active_gates_auto_disable");
     this->parent_->set_show_gates_energy(state);
     this->publish_state(state);
+    if (state) {
+      this->set_timeout("active_gates_auto_disable", 5 * 60 * 1000, [this]() {
+        this->write_state(false);
+      });
+    }
   }
 }
 

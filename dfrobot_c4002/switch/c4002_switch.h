@@ -32,8 +32,9 @@ class C4002SwitchEnvironmentalCalibration : public switch_::Switch, public Compo
   void write_state(bool state) override;
 };
 
-class C4002SwitchShowGatesEnergy : public switch_::Switch, public Parented<C4002Component> {
+class C4002SwitchShowGatesEnergy : public switch_::Switch, public Component, public Parented<C4002Component> {
  protected:
+  void setup() override;
   void write_state(bool state) override;
 };
 

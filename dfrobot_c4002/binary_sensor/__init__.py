@@ -12,11 +12,6 @@ C4002BinarySensorHub = dfrobot_c4002_ns.class_(
 CONF_MOTION = "motion"
 CONF_PRESENCE = "presence"
 
-GATE_SCHEMA = binary_sensor.binary_sensor_schema(
-    device_class=DEVICE_CLASS_OCCUPANCY,
-    icon="mdi:radar",
-)
-
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(C4002BinarySensorHub),
@@ -29,7 +24,6 @@ CONFIG_SCHEMA = cv.Schema(
             device_class=DEVICE_CLASS_OCCUPANCY,
             icon="mdi:home-account",
         ),
-        **{cv.Optional(f"gate_{i}"): GATE_SCHEMA for i in range(15)},
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -48,9 +42,3 @@ async def to_code(config):
     if presence_config := config.get(CONF_PRESENCE):
         sens_presence = await binary_sensor.new_binary_sensor(presence_config)
         cg.add(hub.set_presence_binary_sensor(sens_presence))
-
-    for i in range(15):
-        key = f"gate_{i}"
-        if key in config:
-            bs = await binary_sensor.new_binary_sensor(config[key])
-            cg.add(hub.set_gate_binary_sensor(i, bs))

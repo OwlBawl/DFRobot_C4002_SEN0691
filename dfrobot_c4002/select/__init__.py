@@ -15,34 +15,15 @@ PresenceSensitivitySelect = dfrobot_c4002_ns.class_(
 ResolutionModeSelect = dfrobot_c4002_ns.class_(
     "ResolutionModeSelect", select.Select, cg.Component
 )
-GateSelect = dfrobot_c4002_ns.class_("GateSelect", select.Select, cg.Component)
 
 OPERATING_MODE_OPTIONS = ["Motion Only", "Presence Only", "Motion OR Presence"]
 SENSITIVITY_OPTIONS = ["Low", "Medium", "High", "Custom"]
 RESOLUTION_OPTIONS = ["80cm", "20cm"]
-GATE_OPTIONS = [
-    "Gate 0 (0.2m)",
-    "Gate 1 (0.8m)",
-    "Gate 2 (1.6m)",
-    "Gate 3 (2.4m)",
-    "Gate 4 (3.2m)",
-    "Gate 5 (4.0m)",
-    "Gate 6 (4.8m)",
-    "Gate 7 (5.6m)",
-    "Gate 8 (6.4m)",
-    "Gate 9 (7.2m)",
-    "Gate 10 (8.0m)",
-    "Gate 11 (8.8m)",
-    "Gate 12 (9.6m)",
-    "Gate 13 (10.4m)",
-    "Gate 14 (11.2m)",
-]
 
 CONF_OPERATING_MODE = "operating_mode"
 CONF_MOTION_SENSITIVITY = "motion_sensitivity"
 CONF_PRESENCE_SENSITIVITY = "presence_sensitivity"
 CONF_RESOLUTION_MODE = "resolution_mode"
-CONF_GATE_SELECTOR = "gate_selector"
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -72,11 +53,6 @@ CONFIG_SCHEMA = cv.Schema(
             ResolutionModeSelect,
             entity_category=ENTITY_CATEGORY_CONFIG,
             icon="mdi:grid",
-        ),
-        cv.Optional(CONF_GATE_SELECTOR): select.select_schema(
-            GateSelect,
-            entity_category=ENTITY_CATEGORY_CONFIG,
-            icon="mdi:ray-start-arrow",
         ),
     }
 )
@@ -117,9 +93,3 @@ async def to_code(config):
         )
         await cg.register_parented(res_select, config[CONF_C4002_ID])
         cg.add(c4002_component.set_resolution_mode_select(res_select))
-
-    # Gate Selector
-    if gate_select_config := config.get(CONF_GATE_SELECTOR):
-        g_select = await select.new_select(gate_select_config, options=GATE_OPTIONS)
-        await cg.register_parented(g_select, config[CONF_C4002_ID])
-        cg.add(c4002_component.set_gate_select(g_select))

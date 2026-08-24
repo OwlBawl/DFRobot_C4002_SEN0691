@@ -25,8 +25,7 @@ from .const import (
 CONF_TARGET_DISAPPEARD_DELAY_TIME = "target_disappeard_delay_time"
 CONF_LOCK_TIME = "lock_time"
 CONF_REPORT_PERIOD = "report_period"
-CONF_GATE_MOTION_THRESHOLD = "gate_motion_threshold"
-CONF_GATE_PRESENCE_THRESHOLD = "gate_presence_threshold"
+GATE_COUNT = 15
 
 MinDetectRangeNumber = dfrobot_c4002_ns.class_("MinDetectRangeNumber", number.Number)
 MaxRDetectangeNumber = dfrobot_c4002_ns.class_("MaxDetectRangeNumber", number.Number)
@@ -139,18 +138,24 @@ CONFIG_SCHEMA = cv.Schema(
             icon="mdi:timer-refresh",
             unit_of_measurement=UNIT_SECOND,
         ),
-        cv.Optional(CONF_GATE_MOTION_THRESHOLD): number.number_schema(
-            GateMotionThresholdNumber,
-            entity_category=ENTITY_CATEGORY_CONFIG,
-            icon="mdi:tune",
-            unit_of_measurement=UNIT_PERCENT,
-        ),
-        cv.Optional(CONF_GATE_PRESENCE_THRESHOLD): number.number_schema(
-            GatePresenceThresholdNumber,
-            entity_category=ENTITY_CATEGORY_CONFIG,
-            icon="mdi:tune-vertical",
-            unit_of_measurement=UNIT_PERCENT,
-        ),
+        **{
+            cv.Optional(f"gate_{gate}_motion_threshold"): number.number_schema(
+                GateMotionThresholdNumber,
+                entity_category=ENTITY_CATEGORY_CONFIG,
+                icon="mdi:tune",
+                unit_of_measurement=UNIT_PERCENT,
+            )
+            for gate in range(GATE_COUNT)
+        },
+        **{
+            cv.Optional(f"gate_{gate}_presence_threshold"): number.number_schema(
+                GatePresenceThresholdNumber,
+                entity_category=ENTITY_CATEGORY_CONFIG,
+                icon="mdi:tune-vertical",
+                unit_of_measurement=UNIT_PERCENT,
+            )
+            for gate in range(GATE_COUNT)
+        },
     }
 )
 
@@ -245,16 +250,21 @@ async def to_code(config):
         await cg.register_parented(n, config[CONF_C4002_ID])
         cg.add(number_component.set_report_period_number(n))
 
-    if gate_motion_thresh_config := config.get(CONF_GATE_MOTION_THRESHOLD):
-        n = await number.new_number(
-            gate_motion_thresh_config, min_value=0, max_value=100, step=1
-        )
-        await cg.register_parented(n, config[CONF_C4002_ID])
-        cg.add(number_component.set_gate_motion_thresh_number(n))
+    for gate in range(GATE_COUNT):
+        motion_key = f"gate_{gate}_motion_threshold"
+        if motion_config := config.get(motion_key):
+            n = await number.new_number(
+                motion_config, min_value=0, max_value=100, step=1
+            )
+            await cg.register_parented(n, config[CONF_C4002_ID])
+            cg.add(n.set_gate_index(gate))
+            cg.add(number_component.set_gate_motion_thresh_number(gate, n))
 
-    if gate_presence_thresh_config := config.get(CONF_GATE_PRESENCE_THRESHOLD):
-        n = await number.new_number(
-            gate_presence_thresh_config, min_value=0, max_value=100, step=1
-        )
-        await cg.register_parented(n, config[CONF_C4002_ID])
-        cg.add(number_component.set_gate_presence_thresh_number(n))
+        presence_key = f"gate_{gate}_presence_threshold"
+        if presence_config := config.get(presence_key):
+            n = await number.new_number(
+                presence_config, min_value=0, max_value=100, step=1
+            )
+            await cg.register_parented(n, config[CONF_C4002_ID])
+            cg.add(n.set_gate_index(gate))
+            cg.add(number_component.set_gate_presence_thresh_number(gate, n))

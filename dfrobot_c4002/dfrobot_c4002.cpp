@@ -14,7 +14,7 @@ static const char *const TAG = "dfrobot_c4002: ";
  */
 void C4002Component::setup() {
   update_config_param();
-  this->publish_text("The initialization of c4002 was successful!");
+  ESP_LOGI(TAG, "The initialization of c4002 was successful!");
 }
 
 /**
@@ -41,7 +41,7 @@ void C4002Component::loop() {
     ESP_LOGD(TAG, "********Calibration countdown: %2d s**********", ret.calibCountdown);
     if (ret.calibCountdown == 0) {
       ESP_LOGD(TAG, "Calibration complete!");
-      this->publish_text("Calibration complete!");
+      ESP_LOGI(TAG, "Calibration complete!");
       analysis_text_report();
 #ifdef USE_SWITCH
       if (this->env_calibration_switch_ != nullptr) {
@@ -55,7 +55,7 @@ void C4002Component::loop() {
   if (reset_flag_ == 1) {
     reset_flag_ = 0;
     restart();
-    this->publish_text("Reset the device to factory complete!");
+    ESP_LOGI(TAG, "Reset the device to factory complete!");
   }
 }
 
@@ -75,31 +75,6 @@ void C4002Component::get_data() {
   uint16_t countdown = get_presence_countdown();
   uint32_t active_gates = get_exist_dist_index();
 
-  std::string gates_summary = "";
-  if (this->show_gates_energy_) {
-    if (active_gates == 0) {
-      gates_summary = "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 (Clear)";
-    } else {
-      int first_active = -1;
-      int last_active = -1;
-      char buf[32];
-      for (int i = 0; i < 15; i++) {
-        if ((active_gates >> i) & 1) {
-          if (first_active == -1) first_active = i;
-          last_active = i;
-          snprintf(buf, sizeof(buf), "%d🟢 ", i);
-        } else {
-          snprintf(buf, sizeof(buf), "%d ", i);
-        }
-        gates_summary += buf;
-      }
-      if (first_active != -1 && last_active != -1) {
-        snprintf(buf, sizeof(buf), "(%.1fm - %.1fm)", this->interval_point_[first_active], this->interval_point_[last_active]);
-        gates_summary += buf;
-      }
-    }
-  }
-
   for (auto &listener : this->listeners_) {
     if (listener != nullptr) {
       listener->on_movement_distance(move_taget_data.distance);
@@ -111,12 +86,46 @@ void C4002Component::get_data() {
       listener->on_movement_energy(move_taget_data.energy);
       listener->on_existing_energy(exit_taget_data.energy);
       listener->on_presence_countdown(countdown);
-      listener->on_active_gates(active_gates);
-      if (this->show_gates_energy_) {
-        listener->on_gates_summary(gates_summary);
-      }
     }
   }
+  if (this->show_gates_energy_) this->publish_gates_summary(active_gates);
+}
+
+void C4002Component::publish_gates_summary(uint32_t active_gates) {
+  std::string gates_summary;
+  int first_active = -1;
+  int last_active = -1;
+  for (int i = 0; i < DOOR_COUNT; i++) {
+    if ((active_gates >> i) & 1) {
+      if (first_active != -1) gates_summary += " ";
+      gates_summary += std::to_string(i);
+      if (first_active == -1) first_active = i;
+      last_active = i;
+    } else {
+      gates_summary += "-";
+    }
+  }
+  if (first_active != -1) {
+    char buf[32];
+    snprintf(buf, sizeof(buf), "(%.1fm - %.1fm)", this->interval_point_[first_active], this->interval_point_[last_active]);
+    gates_summary += buf;
+  }
+  for (auto &listener : this->listeners_) {
+    if (listener != nullptr) listener->on_gates_summary(gates_summary);
+  }
+}
+
+void C4002Component::publish_gate_thresholds() {
+#ifdef USE_NUMBER
+  for (uint8_t gate = 0; gate < DOOR_COUNT; gate++) {
+    if (this->gate_motion_thresh_numbers_[gate] != nullptr) {
+      this->gate_motion_thresh_numbers_[gate]->publish_state(this->motion_gate_thresh_[gate]);
+    }
+    if (this->gate_presence_thresh_numbers_[gate] != nullptr) {
+      this->gate_presence_thresh_numbers_[gate]->publish_state(this->presence_gate_thresh_[gate]);
+    }
+  }
+#endif
 }
 
 /**
@@ -201,30 +210,11 @@ void C4002Component::update_config_param() {
     }
   }
 
-#ifdef USE_SWITCH
-  if (show_gates_energy_switch_ != nullptr) {
-    show_gates_energy_switch_->publish_state(this->show_gates_energy_);
-  }
-#endif
-
   // Read gate thresholds
   get_distance_gate_thresh(MOVE_DIST_DOOR, motion_gate_thresh_);
   get_distance_gate_thresh(EXIST_DIST_DOOR, presence_gate_thresh_);
 
-#ifdef USE_SELECT
-  if (this->gate_selector_ != nullptr) {
-    this->gate_selector_->publish_state("Gate 0 (0.2m)");
-  }
-#endif
-
-#ifdef USE_NUMBER
-  if (this->gate_motion_thresh_number_ != nullptr) {
-    this->gate_motion_thresh_number_->publish_state(this->motion_gate_thresh_[this->current_selected_gate_]);
-  }
-  if (this->gate_presence_thresh_number_ != nullptr) {
-    this->gate_presence_thresh_number_->publish_state(this->presence_gate_thresh_[this->current_selected_gate_]);
-  }
-#endif
+  this->publish_gate_thresholds();
 
 #ifdef USE_SELECT
   if (this->operating_selector_ != nullptr) {
@@ -239,16 +229,9 @@ void C4002Component::update_config_param() {
     }
   }
 
-  auto are_gates_uniform = [](const uint8_t *thresh, size_t count = 15) -> bool {
-    for (size_t i = 1; i < count; i++) {
-      if (thresh[i] != thresh[0]) return false;
-    }
-    return true;
-  };
-
   if (this->motion_sensitivity_selector_ != nullptr) {
     SensitivityLevel sens = get_sensitivity(MOVE_DIST_DOOR);
-    if (!are_gates_uniform(this->motion_gate_thresh_) || sens == SENS_CUSTOM) {
+    if (sens == SENS_CUSTOM) {
       this->motion_sensitivity_selector_->publish_state("Custom");
     } else if (sens == SENS_LOW) {
       this->motion_sensitivity_selector_->publish_state("High");
@@ -263,7 +246,7 @@ void C4002Component::update_config_param() {
 
   if (this->presence_sensitivity_selector_ != nullptr) {
     SensitivityLevel sens = get_sensitivity(EXIST_DIST_DOOR);
-    if (!are_gates_uniform(this->presence_gate_thresh_) || sens == SENS_CUSTOM) {
+    if (sens == SENS_CUSTOM) {
       this->presence_sensitivity_selector_->publish_state("Custom");
     } else if (sens == SENS_LOW) {
       this->presence_sensitivity_selector_->publish_state("High");
@@ -708,7 +691,7 @@ void C4002Component::analysis_text_report() {
   }
 
   if (flag == 0) {
-    this->publish_text("The calibration threshold is effective!");
+    ESP_LOGI(TAG, "The calibration threshold is effective!");
     return;
   }
 
@@ -728,7 +711,7 @@ void C4002Component::analysis_text_report() {
   snprintf(data_str + offset, sizeof(data_str) - offset,
            " m, Please clear all interference sources within this range and recalibrate.");
 
-  this->publish_text(data_str);
+  ESP_LOGW(TAG, "%s", data_str);
 }
 
 /**
@@ -1148,16 +1131,6 @@ bool C4002Component::joint_enable_door() {
   return enable_all_distance_door(enable_door_);
 }
 
-void C4002Component::publish_text(const std::string &msg) {
-#ifdef USE_TEXT_SENSOR
-  if (this->text_sensor_ != nullptr) {
-    this->text_sensor_->publish_state(msg);
-  }
-#else
-  (void) msg;
-#endif
-}
-
 /**
  * setup_number
  * Set the detect range of the device.
@@ -1262,7 +1235,12 @@ bool C4002Component::set_sensitivity(DistanceDoorType door_type, SensitivityLeve
   send_pack(send_data, data_len, FRAME_TYPE_WRITE_REQUSET);
 
   RecvPack rec_pack = recv_pack();
-  return (SUCCEED == rec_pack.resPonCode);
+  if (SUCCEED != rec_pack.resPonCode) return false;
+
+  get_distance_gate_thresh(MOVE_DIST_DOOR, motion_gate_thresh_);
+  get_distance_gate_thresh(EXIST_DIST_DOOR, presence_gate_thresh_);
+  this->publish_gate_thresholds();
+  return true;
 }
 
 SensitivityLevel C4002Component::get_sensitivity(DistanceDoorType door_type) {
@@ -1347,17 +1325,6 @@ uint8_t C4002Component::get_cached_gate_thresh(DistanceDoorType door_type, uint8
   return (door_type == MOVE_DIST_DOOR) ? motion_gate_thresh_[gate_index] : presence_gate_thresh_[gate_index];
 }
 
-void C4002Component::select_gate_to_edit(uint8_t gate_index) {
-  if (gate_index >= 15) return;
-  this->current_selected_gate_ = gate_index;
-  if (this->gate_motion_thresh_number_ != nullptr) {
-    this->gate_motion_thresh_number_->publish_state(this->motion_gate_thresh_[gate_index]);
-  }
-  if (this->gate_presence_thresh_number_ != nullptr) {
-    this->gate_presence_thresh_number_->publish_state(this->presence_gate_thresh_[gate_index]);
-  }
-}
-
 void C4002Component::set_show_gates_energy(bool show) {
   this->show_gates_energy_ = show;
   if (this->show_gates_energy_switch_ != nullptr) {
@@ -1366,10 +1333,11 @@ void C4002Component::set_show_gates_energy(bool show) {
   if (!show) {
     for (auto &listener : this->listeners_) {
       if (listener != nullptr) {
-        listener->on_active_gates(0);
         listener->on_gates_summary("Disabled");
       }
     }
+  } else {
+    this->publish_gates_summary(this->detect_result_.existDistIndex);
   }
 }
 

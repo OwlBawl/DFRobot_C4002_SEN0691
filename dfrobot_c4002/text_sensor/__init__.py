@@ -7,7 +7,6 @@ from .. import CONF_C4002_ID, C4002Component, dfrobot_c4002_ns
 
 C4002TextSensorHub = dfrobot_c4002_ns.class_("C4002TextSensorHub", cg.Component)
 
-C4002_TEXT_SENSOR = "c4002_text_sensor"
 CONF_ACTIVE_GATES_SUMMARY = "active_gates_summary"
 CONF_MOVEMENT_DIRECTION = "movement_direction"
 
@@ -15,9 +14,6 @@ CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(C4002TextSensorHub),
         cv.GenerateID(CONF_C4002_ID): cv.use_id(C4002Component),
-        cv.Optional(C4002_TEXT_SENSOR): text_sensor.text_sensor_schema(
-            icon="mdi:message-text-outline"
-        ),
         cv.Optional(CONF_ACTIVE_GATES_SUMMARY): text_sensor.text_sensor_schema(
             icon="mdi:radar"
         ),
@@ -34,11 +30,6 @@ async def to_code(config):
 
     parent = await cg.get_variable(config[CONF_C4002_ID])
     cg.add(hub.set_parent(parent))
-
-    if C4002_TEXT_SENSOR in config:
-        ts = await text_sensor.new_text_sensor(config[C4002_TEXT_SENSOR])
-        cg.add(parent.set_text_sensor(ts))
-        cg.add(hub.set_text_sensor(ts))
 
     if CONF_ACTIVE_GATES_SUMMARY in config:
         ts_summary = await text_sensor.new_text_sensor(

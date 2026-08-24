@@ -27,7 +27,6 @@ CONF_TARGET_STATUS = "target_status"
 CONF_MOVEMENT_ENERGY = "movement_energy"
 CONF_EXISTING_ENERGY = "existing_energy"
 CONF_PRESENCE_COUNTDOWN = "presence_countdown"
-CONF_ACTIVE_GATES = "active_gates"
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -78,10 +77,6 @@ CONFIG_SCHEMA = cv.Schema(
             device_class=DEVICE_CLASS_DURATION,
             unit_of_measurement=UNIT_SECOND,
             icon="mdi:timer-sand",
-            accuracy_decimals=0,
-        ),
-        cv.Optional(CONF_ACTIVE_GATES): sensor.sensor_schema(
-            icon="mdi:radar",
             accuracy_decimals=0,
         ),
     }
@@ -145,12 +140,6 @@ async def to_code(config):
         sens_conf = config[CONF_PRESENCE_COUNTDOWN]
         sens = await sensor.new_sensor(sens_conf)
         cg.add(c4002_sensor.set_presence_countdown_sensor(sens))
-
-    # 活跃门索引
-    if CONF_ACTIVE_GATES in config:
-        sens_conf = config[CONF_ACTIVE_GATES]
-        sens = await sensor.new_sensor(sens_conf)
-        cg.add(c4002_sensor.set_active_gates_sensor(sens))
 
     c4002_component = await cg.get_variable(config[CONF_C4002_ID])
     cg.add(c4002_component.register_listener(c4002_sensor))

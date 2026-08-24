@@ -147,9 +147,6 @@ sensor:
     presence_countdown:
       name: "Presence Countdown"
       id: ${dfrobot_id}_presence_countdown
-    active_gates:
-      name: "Active Gates Bitmask"
-      id: ${dfrobot_id}_active_gates
 
 text_sensor:
   - platform: dfrobot_c4002
@@ -158,10 +155,6 @@ text_sensor:
       name: "Movement Direction"
       id: ${dfrobot_id}_movement_direction_text
       icon: "mdi:directions"
-    c4002_text_sensor:
-      name: "Log"
-      id: ${dfrobot_id}_log
-      icon: "mdi:message-text-outline"
     active_gates_summary:
       name: "Active Gates Track"
       id: ${dfrobot_id}_active_gates_summary
@@ -181,7 +174,7 @@ switch:
       name: "Sensor Calibration"
       id: ${dfrobot_id}_sensor_calibration
     switch_show_gates_energy:
-      name: "Show Gates Energy"
+      name: "Active Gates Tracking"
       id: ${dfrobot_id}_show_gates_energy
 
 # Button configuration
@@ -217,9 +210,6 @@ select:
     resolution_mode:
       name: "Resolution Mode"
       id: ${dfrobot_id}_resolution_mode
-    gate_selector:
-      name: "Selected Distance Gate"
-      id: ${dfrobot_id}_gate_selector
 
 # Min and max detection range configuration
 number:
@@ -240,12 +230,36 @@ number:
     report_period:
       name: "Report Period"
       id: ${dfrobot_id}_report_period
-    gate_motion_threshold:
-      name: "Selected Gate Motion Threshold"
-      id: ${dfrobot_id}_gate_motion_threshold
-    gate_presence_threshold:
-      name: "Selected Gate Presence Threshold"
-      id: ${dfrobot_id}_gate_presence_threshold
+    gate_0_motion_threshold: { name: "Gate 0 Motion", id: "${dfrobot_id}_gate_0_motion" }
+    gate_0_presence_threshold: { name: "Gate 0 Still", id: "${dfrobot_id}_gate_0_still" }
+    gate_1_motion_threshold: { name: "Gate 1 Motion", id: "${dfrobot_id}_gate_1_motion" }
+    gate_1_presence_threshold: { name: "Gate 1 Still", id: "${dfrobot_id}_gate_1_still" }
+    gate_2_motion_threshold: { name: "Gate 2 Motion", id: "${dfrobot_id}_gate_2_motion" }
+    gate_2_presence_threshold: { name: "Gate 2 Still", id: "${dfrobot_id}_gate_2_still" }
+    gate_3_motion_threshold: { name: "Gate 3 Motion", id: "${dfrobot_id}_gate_3_motion" }
+    gate_3_presence_threshold: { name: "Gate 3 Still", id: "${dfrobot_id}_gate_3_still" }
+    gate_4_motion_threshold: { name: "Gate 4 Motion", id: "${dfrobot_id}_gate_4_motion" }
+    gate_4_presence_threshold: { name: "Gate 4 Still", id: "${dfrobot_id}_gate_4_still" }
+    gate_5_motion_threshold: { name: "Gate 5 Motion", id: "${dfrobot_id}_gate_5_motion" }
+    gate_5_presence_threshold: { name: "Gate 5 Still", id: "${dfrobot_id}_gate_5_still" }
+    gate_6_motion_threshold: { name: "Gate 6 Motion", id: "${dfrobot_id}_gate_6_motion" }
+    gate_6_presence_threshold: { name: "Gate 6 Still", id: "${dfrobot_id}_gate_6_still" }
+    gate_7_motion_threshold: { name: "Gate 7 Motion", id: "${dfrobot_id}_gate_7_motion" }
+    gate_7_presence_threshold: { name: "Gate 7 Still", id: "${dfrobot_id}_gate_7_still" }
+    gate_8_motion_threshold: { name: "Gate 8 Motion", id: "${dfrobot_id}_gate_8_motion" }
+    gate_8_presence_threshold: { name: "Gate 8 Still", id: "${dfrobot_id}_gate_8_still" }
+    gate_9_motion_threshold: { name: "Gate 9 Motion", id: "${dfrobot_id}_gate_9_motion" }
+    gate_9_presence_threshold: { name: "Gate 9 Still", id: "${dfrobot_id}_gate_9_still" }
+    gate_10_motion_threshold: { name: "Gate 10 Motion", id: "${dfrobot_id}_gate_10_motion" }
+    gate_10_presence_threshold: { name: "Gate 10 Still", id: "${dfrobot_id}_gate_10_still" }
+    gate_11_motion_threshold: { name: "Gate 11 Motion", id: "${dfrobot_id}_gate_11_motion" }
+    gate_11_presence_threshold: { name: "Gate 11 Still", id: "${dfrobot_id}_gate_11_still" }
+    gate_12_motion_threshold: { name: "Gate 12 Motion", id: "${dfrobot_id}_gate_12_motion" }
+    gate_12_presence_threshold: { name: "Gate 12 Still", id: "${dfrobot_id}_gate_12_still" }
+    gate_13_motion_threshold: { name: "Gate 13 Motion", id: "${dfrobot_id}_gate_13_motion" }
+    gate_13_presence_threshold: { name: "Gate 13 Still", id: "${dfrobot_id}_gate_13_still" }
+    gate_14_motion_threshold: { name: "Gate 14 Motion", id: "${dfrobot_id}_gate_14_motion" }
+    gate_14_presence_threshold: { name: "Gate 14 Still", id: "${dfrobot_id}_gate_14_still" }
     area1_min:
       name: "Area 1 Excluded Range Min"
       id: ${dfrobot_id}_area1_min
