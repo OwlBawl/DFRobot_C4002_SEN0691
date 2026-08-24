@@ -365,7 +365,8 @@ bool C4002Component::factory_reset() {
   uint8_t send_date[10];
   uint16_t data_len = 5;
 
-  send_date[0] = CMD_FACTORY_RESET;
+  // The sensor requires its user settings to be cleared before the factory reset command.
+  send_date[0] = CMD_FACTORY_RESET_USER;
   send_date[1] = READ_AND_WRITE_REQ;
   send_date[2] = data_len >> 0 & 0xFF;
   send_date[3] = data_len >> 8 & 0xFF;
@@ -376,14 +377,15 @@ bool C4002Component::factory_reset() {
   if (SUCCEED != rec_pack.resPonCode) {
     return false;
   }
-  delay(10);
+  delay(50);
 
-  send_date[0] = CMD_FACTORY_RESET_USER;
+  send_date[0] = CMD_FACTORY_RESET;
   send_pack(send_date, data_len, FRAME_TYPE_WRITE_REQUSET);
   rec_pack = recv_pack();
   if (SUCCEED != rec_pack.resPonCode) {
     return false;
   }
+  delay(50);
   reset_flag_ = 1;
 
   return true;
@@ -1260,9 +1262,9 @@ bool C4002Component::set_sensitivity(DistanceDoorType door_type, SensitivityLeve
   RecvPack rec_pack = recv_pack();
   if (SUCCEED != rec_pack.resPonCode) return false;
 
-  get_distance_gate_thresh(MOVE_DIST_DOOR, motion_gate_thresh_);
-  get_distance_gate_thresh(EXIST_DIST_DOOR, presence_gate_thresh_);
-  this->publish_gate_thresholds();
+  // The C4002 acknowledges the group selection before its active gate table is updated.
+  // Read all settings after the change has settled so HA cannot retain Custom values.
+  this->set_timeout("c4002_sensitivity_readback", 150, [this]() { this->update_config_param(); });
   return true;
 }
 

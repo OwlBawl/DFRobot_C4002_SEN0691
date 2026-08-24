@@ -142,7 +142,7 @@ CONFIG_SCHEMA = cv.Schema(
             cv.Optional(f"gate_{gate}_motion_threshold"): number.number_schema(
                 GateMotionThresholdNumber,
                 entity_category=ENTITY_CATEGORY_CONFIG,
-                icon="mdi:tune",
+                icon="mdi:transit-transfer",
                 unit_of_measurement=UNIT_PERCENT,
             )
             for gate in range(GATE_COUNT)
@@ -151,7 +151,7 @@ CONFIG_SCHEMA = cv.Schema(
             cv.Optional(f"gate_{gate}_presence_threshold"): number.number_schema(
                 GatePresenceThresholdNumber,
                 entity_category=ENTITY_CATEGORY_CONFIG,
-                icon="mdi:tune-vertical",
+                icon="mdi:human-handsdown",
                 unit_of_measurement=UNIT_PERCENT,
             )
             for gate in range(GATE_COUNT)

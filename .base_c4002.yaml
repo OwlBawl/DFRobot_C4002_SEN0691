@@ -230,55 +230,55 @@ number:
     report_period:
       name: "Report Period"
       id: ${dfrobot_id}_report_period
-    gate_0_motion_threshold: { name: "Gate 0 Motion", id: "${dfrobot_id}_gate_0_motion" }
+    gate_0_motion_threshold: { name: "Gate 0 Move", id: "${dfrobot_id}_gate_0_motion" }
     gate_0_presence_threshold: { name: "Gate 0 Still", id: "${dfrobot_id}_gate_0_still" }
-    gate_1_motion_threshold: { name: "Gate 1 Motion", id: "${dfrobot_id}_gate_1_motion" }
+    gate_1_motion_threshold: { name: "Gate 1 Move", id: "${dfrobot_id}_gate_1_motion" }
     gate_1_presence_threshold: { name: "Gate 1 Still", id: "${dfrobot_id}_gate_1_still" }
-    gate_2_motion_threshold: { name: "Gate 2 Motion", id: "${dfrobot_id}_gate_2_motion" }
+    gate_2_motion_threshold: { name: "Gate 2 Move", id: "${dfrobot_id}_gate_2_motion" }
     gate_2_presence_threshold: { name: "Gate 2 Still", id: "${dfrobot_id}_gate_2_still" }
-    gate_3_motion_threshold: { name: "Gate 3 Motion", id: "${dfrobot_id}_gate_3_motion" }
+    gate_3_motion_threshold: { name: "Gate 3 Move", id: "${dfrobot_id}_gate_3_motion" }
     gate_3_presence_threshold: { name: "Gate 3 Still", id: "${dfrobot_id}_gate_3_still" }
-    gate_4_motion_threshold: { name: "Gate 4 Motion", id: "${dfrobot_id}_gate_4_motion" }
+    gate_4_motion_threshold: { name: "Gate 4 Move", id: "${dfrobot_id}_gate_4_motion" }
     gate_4_presence_threshold: { name: "Gate 4 Still", id: "${dfrobot_id}_gate_4_still" }
-    gate_5_motion_threshold: { name: "Gate 5 Motion", id: "${dfrobot_id}_gate_5_motion" }
+    gate_5_motion_threshold: { name: "Gate 5 Move", id: "${dfrobot_id}_gate_5_motion" }
     gate_5_presence_threshold: { name: "Gate 5 Still", id: "${dfrobot_id}_gate_5_still" }
-    gate_6_motion_threshold: { name: "Gate 6 Motion", id: "${dfrobot_id}_gate_6_motion" }
+    gate_6_motion_threshold: { name: "Gate 6 Move", id: "${dfrobot_id}_gate_6_motion" }
     gate_6_presence_threshold: { name: "Gate 6 Still", id: "${dfrobot_id}_gate_6_still" }
-    gate_7_motion_threshold: { name: "Gate 7 Motion", id: "${dfrobot_id}_gate_7_motion" }
+    gate_7_motion_threshold: { name: "Gate 7 Move", id: "${dfrobot_id}_gate_7_motion" }
     gate_7_presence_threshold: { name: "Gate 7 Still", id: "${dfrobot_id}_gate_7_still" }
-    gate_8_motion_threshold: { name: "Gate 8 Motion", id: "${dfrobot_id}_gate_8_motion" }
+    gate_8_motion_threshold: { name: "Gate 8 Move", id: "${dfrobot_id}_gate_8_motion" }
     gate_8_presence_threshold: { name: "Gate 8 Still", id: "${dfrobot_id}_gate_8_still" }
-    gate_9_motion_threshold: { name: "Gate 9 Motion", id: "${dfrobot_id}_gate_9_motion" }
+    gate_9_motion_threshold: { name: "Gate 9 Move", id: "${dfrobot_id}_gate_9_motion" }
     gate_9_presence_threshold: { name: "Gate 9 Still", id: "${dfrobot_id}_gate_9_still" }
-    gate_10_motion_threshold: { name: "Gate 10 Motion", id: "${dfrobot_id}_gate_10_motion" }
+    gate_10_motion_threshold: { name: "Gate 10 Move", id: "${dfrobot_id}_gate_10_motion" }
     gate_10_presence_threshold: { name: "Gate 10 Still", id: "${dfrobot_id}_gate_10_still" }
-    gate_11_motion_threshold: { name: "Gate 11 Motion", id: "${dfrobot_id}_gate_11_motion" }
+    gate_11_motion_threshold: { name: "Gate 11 Move", id: "${dfrobot_id}_gate_11_motion" }
     gate_11_presence_threshold: { name: "Gate 11 Still", id: "${dfrobot_id}_gate_11_still" }
-    gate_12_motion_threshold: { name: "Gate 12 Motion", id: "${dfrobot_id}_gate_12_motion" }
+    gate_12_motion_threshold: { name: "Gate 12 Move", id: "${dfrobot_id}_gate_12_motion" }
     gate_12_presence_threshold: { name: "Gate 12 Still", id: "${dfrobot_id}_gate_12_still" }
-    gate_13_motion_threshold: { name: "Gate 13 Motion", id: "${dfrobot_id}_gate_13_motion" }
+    gate_13_motion_threshold: { name: "Gate 13 Move", id: "${dfrobot_id}_gate_13_motion" }
     gate_13_presence_threshold: { name: "Gate 13 Still", id: "${dfrobot_id}_gate_13_still" }
-    gate_14_motion_threshold: { name: "Gate 14 Motion", id: "${dfrobot_id}_gate_14_motion" }
+    gate_14_motion_threshold: { name: "Gate 14 Move", id: "${dfrobot_id}_gate_14_motion" }
     gate_14_presence_threshold: { name: "Gate 14 Still", id: "${dfrobot_id}_gate_14_still" }
-    gate_15_motion_threshold: { name: "Gate 15 Motion", id: "${dfrobot_id}_gate_15_motion" }
+    gate_15_motion_threshold: { name: "Gate 15 Move", id: "${dfrobot_id}_gate_15_motion" }
     gate_15_presence_threshold: { name: "Gate 15 Still", id: "${dfrobot_id}_gate_15_still" }
-    gate_16_motion_threshold: { name: "Gate 16 Motion", id: "${dfrobot_id}_gate_16_motion" }
+    gate_16_motion_threshold: { name: "Gate 16 Move", id: "${dfrobot_id}_gate_16_motion" }
     gate_16_presence_threshold: { name: "Gate 16 Still", id: "${dfrobot_id}_gate_16_still" }
-    gate_17_motion_threshold: { name: "Gate 17 Motion", id: "${dfrobot_id}_gate_17_motion" }
+    gate_17_motion_threshold: { name: "Gate 17 Move", id: "${dfrobot_id}_gate_17_motion" }
     gate_17_presence_threshold: { name: "Gate 17 Still", id: "${dfrobot_id}_gate_17_still" }
-    gate_18_motion_threshold: { name: "Gate 18 Motion", id: "${dfrobot_id}_gate_18_motion" }
+    gate_18_motion_threshold: { name: "Gate 18 Move", id: "${dfrobot_id}_gate_18_motion" }
     gate_18_presence_threshold: { name: "Gate 18 Still", id: "${dfrobot_id}_gate_18_still" }
-    gate_19_motion_threshold: { name: "Gate 19 Motion", id: "${dfrobot_id}_gate_19_motion" }
+    gate_19_motion_threshold: { name: "Gate 19 Move", id: "${dfrobot_id}_gate_19_motion" }
     gate_19_presence_threshold: { name: "Gate 19 Still", id: "${dfrobot_id}_gate_19_still" }
-    gate_20_motion_threshold: { name: "Gate 20 Motion", id: "${dfrobot_id}_gate_20_motion" }
+    gate_20_motion_threshold: { name: "Gate 20 Move", id: "${dfrobot_id}_gate_20_motion" }
     gate_20_presence_threshold: { name: "Gate 20 Still", id: "${dfrobot_id}_gate_20_still" }
-    gate_21_motion_threshold: { name: "Gate 21 Motion", id: "${dfrobot_id}_gate_21_motion" }
+    gate_21_motion_threshold: { name: "Gate 21 Move", id: "${dfrobot_id}_gate_21_motion" }
     gate_21_presence_threshold: { name: "Gate 21 Still", id: "${dfrobot_id}_gate_21_still" }
-    gate_22_motion_threshold: { name: "Gate 22 Motion", id: "${dfrobot_id}_gate_22_motion" }
+    gate_22_motion_threshold: { name: "Gate 22 Move", id: "${dfrobot_id}_gate_22_motion" }
     gate_22_presence_threshold: { name: "Gate 22 Still", id: "${dfrobot_id}_gate_22_still" }
-    gate_23_motion_threshold: { name: "Gate 23 Motion", id: "${dfrobot_id}_gate_23_motion" }
+    gate_23_motion_threshold: { name: "Gate 23 Move", id: "${dfrobot_id}_gate_23_motion" }
     gate_23_presence_threshold: { name: "Gate 23 Still", id: "${dfrobot_id}_gate_23_still" }
-    gate_24_motion_threshold: { name: "Gate 24 Motion", id: "${dfrobot_id}_gate_24_motion" }
+    gate_24_motion_threshold: { name: "Gate 24 Move", id: "${dfrobot_id}_gate_24_motion" }
     gate_24_presence_threshold: { name: "Gate 24 Still", id: "${dfrobot_id}_gate_24_still" }
     area1_min:
       name: "Area 1 Excluded Range Min"
