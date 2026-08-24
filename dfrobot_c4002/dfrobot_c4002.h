@@ -393,6 +393,7 @@ class C4002Component : public Component, public uart::UARTDevice {
   RetResult parse_notification(const RecvPack &packet);
   void enqueue_notification(const RecvPack &packet);
   bool dequeue_notification(RecvPack &packet);
+  void log_gate_thresholds(DistanceDoorType door_type, const uint8_t *gate_data) const;
 
   //**all data param **//
   DetectRet detect_result_{};

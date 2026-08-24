@@ -379,16 +379,20 @@ bool C4002Component::factory_reset() {
 
   RecvPack rec_pack = recv_pack();
   if (SUCCEED != rec_pack.resPonCode) {
+    ESP_LOGW(TAG, "Factory reset user-settings command failed: 0x%02X", static_cast<unsigned>(rec_pack.resPonCode));
     return false;
   }
+  ESP_LOGD(TAG, "Factory reset user-settings command acknowledged");
   delay(50);
 
   send_date[0] = CMD_FACTORY_RESET;
   send_pack(send_date, data_len, FRAME_TYPE_WRITE_REQUSET);
   rec_pack = recv_pack();
   if (SUCCEED != rec_pack.resPonCode) {
+    ESP_LOGW(TAG, "Factory reset command failed: 0x%02X", static_cast<unsigned>(rec_pack.resPonCode));
     return false;
   }
+  ESP_LOGD(TAG, "Factory reset command acknowledged");
   delay(50);
   reset_flag_ = 1;
 
@@ -889,6 +893,24 @@ bool C4002Component::dequeue_notification(RecvPack &packet) {
   return true;
 }
 
+void C4002Component::log_gate_thresholds(DistanceDoorType door_type, const uint8_t *gate_data) const {
+  if (gate_data == nullptr) return;
+
+  char values[128] = {};
+  size_t offset = 0;
+  const uint8_t gate_count = this->get_gate_count();
+  for (uint8_t gate = 0; gate < gate_count && offset < sizeof(values); gate++) {
+    const int written = snprintf(values + offset, sizeof(values) - offset, "%s%u", gate == 0 ? "" : ",",
+                                 static_cast<unsigned>(gate_data[gate]));
+    if (written < 0 || static_cast<size_t>(written) >= sizeof(values) - offset) break;
+    offset += static_cast<size_t>(written);
+  }
+
+  ESP_LOGD(TAG, "%s gate thresholds (%u): [%s]", door_type == MOVE_DIST_DOOR ? "Move" : "Still",
+           static_cast<unsigned>(gate_count),
+           values);
+}
+
 /**
  * get_resolution_mode
  * Get the resolution mode of the device.
@@ -1059,6 +1081,9 @@ RecvPack C4002Component::recv_pack() {
 
     if (packet.packType == this->pending_response_type_ && packet.dataHeader.cmd == this->pending_command_) {
       this->response_pending_ = false;
+      ESP_LOGD(TAG, "Matched C4002 response (type=0x%02X, command=0x%02X, result=0x%02X)",
+               static_cast<unsigned>(packet.packType), static_cast<unsigned>(packet.dataHeader.cmd),
+               static_cast<unsigned>(packet.resPonCode));
       return packet;
     }
 
@@ -1320,6 +1345,8 @@ bool C4002Component::set_sensitivity(DistanceDoorType door_type, SensitivityLeve
   send_data[data_len++] = temp >> 8 & 0xFF;
   send_data[data_len++] = (uint8_t) door_type;
   send_data[data_len++] = (uint8_t) sensitivity;
+  ESP_LOGD(TAG, "Selecting %s threshold group 0x%02X", door_type == MOVE_DIST_DOOR ? "Move" : "Still",
+           static_cast<unsigned>(sensitivity));
   send_pack(send_data, data_len, FRAME_TYPE_WRITE_REQUSET);
 
   RecvPack rec_pack = recv_pack();
@@ -1345,7 +1372,10 @@ SensitivityLevel C4002Component::get_sensitivity(DistanceDoorType door_type) {
 
   RecvPack rec_pack = recv_pack();
   if (SUCCEED == rec_pack.resPonCode) {
-    return (SensitivityLevel) rec_pack.data[1];
+    const auto sensitivity = static_cast<SensitivityLevel>(rec_pack.data[1]);
+    ESP_LOGD(TAG, "Sensor reports %s threshold group 0x%02X", door_type == MOVE_DIST_DOOR ? "Move" : "Still",
+             static_cast<unsigned>(sensitivity));
+    return sensitivity;
   }
   return SENS_ERROR;
 }
@@ -1370,6 +1400,7 @@ bool C4002Component::get_distance_gate_thresh(DistanceDoorType door_type, uint8_
     RecvPack rec_pack = recv_pack();
     if (SUCCEED == rec_pack.resPonCode && rec_pack.dataHeader.dataLen >= static_cast<uint16_t>(3 + door_num)) {
       memcpy(gate_data, &rec_pack.data[3], door_num);
+      this->log_gate_thresholds(door_type, gate_data);
       return true;
     }
     delay(20);
