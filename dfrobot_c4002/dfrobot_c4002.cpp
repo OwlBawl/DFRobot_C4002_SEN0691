@@ -44,7 +44,7 @@ void C4002Component::print_config() { ESP_LOGD(TAG, "run print config"); }
 void C4002Component::loop() {
   RetResult ret = {};
 
-  if (this->available() >= 8) ret = get_note_info_loop();
+  if (this->notification_queue_size_ > 0 || this->available() >= 8) ret = get_note_info_loop();
   if (ret.noteType == NOTE_INFO_RESULT) {
     get_data();
   } else if (ret.noteType == NOTE_INFO_CALIBRATION) {
@@ -225,11 +225,15 @@ void C4002Component::update_config_param() {
     }
   }
 
-  // Read gate thresholds
-  get_distance_gate_thresh(MOVE_DIST_DOOR, motion_gate_thresh_);
-  get_distance_gate_thresh(EXIST_DIST_DOOR, presence_gate_thresh_);
-
-  this->publish_gate_thresholds();
+  // Only publish gate values when both tables were read successfully. Publishing
+  // the cached arrays here would make stale calibration values look current.
+  const bool motion_gate_thresholds_read = get_distance_gate_thresh(MOVE_DIST_DOOR, motion_gate_thresh_);
+  const bool presence_gate_thresholds_read = get_distance_gate_thresh(EXIST_DIST_DOOR, presence_gate_thresh_);
+  if (motion_gate_thresholds_read && presence_gate_thresholds_read) {
+    this->publish_gate_thresholds();
+  } else {
+    ESP_LOGW(TAG, "Gate threshold refresh failed; retaining the last verified HA state");
+  }
 
 #ifdef USE_SELECT
   if (this->operating_selector_ != nullptr) {
@@ -823,9 +827,16 @@ bool C4002Component::enable_all_distance_door(uint8_t *door_data) {
  * Returns a RetResult struct with the parsed data.
  */
 RetResult C4002Component::get_note_info_loop() {
-  RetResult ret = {};
   RecvPack rec_data = {};
-  rec_data = recv_pack();
+  if (!this->dequeue_notification(rec_data)) {
+    if (this->available() < 8) return {};
+    rec_data = this->recv_frame();
+  }
+  return this->parse_notification(rec_data);
+}
+
+RetResult C4002Component::parse_notification(const RecvPack &rec_data) {
+  RetResult ret = {};
 
   if (SUCCEED == rec_data.resPonCode) {
     if (rec_data.packType == FRAME_TYPE_NOTIFICATION) {  // note
@@ -857,6 +868,25 @@ RetResult C4002Component::get_note_info_loop() {
     ret.noteType = NO_NOTE;
   }
   return ret;
+}
+
+void C4002Component::enqueue_notification(const RecvPack &packet) {
+  if (this->notification_queue_size_ == NOTIFICATION_QUEUE_SIZE) {
+    this->notification_queue_head_ = (this->notification_queue_head_ + 1) % NOTIFICATION_QUEUE_SIZE;
+    this->notification_queue_size_--;
+    ESP_LOGW(TAG, "Notification queue full; discarding oldest notification");
+  }
+  const uint8_t tail = (this->notification_queue_head_ + this->notification_queue_size_) % NOTIFICATION_QUEUE_SIZE;
+  this->notification_queue_[tail] = packet;
+  this->notification_queue_size_++;
+}
+
+bool C4002Component::dequeue_notification(RecvPack &packet) {
+  if (this->notification_queue_size_ == 0) return false;
+  packet = this->notification_queue_[this->notification_queue_head_];
+  this->notification_queue_head_ = (this->notification_queue_head_ + 1) % NOTIFICATION_QUEUE_SIZE;
+  this->notification_queue_size_--;
+  return true;
 }
 
 /**
@@ -913,6 +943,17 @@ bool C4002Component::set_report_period(uint8_t period)  //范围0-255.单位100m
  * type uint8_t msg_type: Type of message to send.
  */
 void C4002Component::send_pack(void *pdata, uint16_t len, uint8_t msg_type) {
+  if (pdata == nullptr || len == 0) {
+    ESP_LOGE(TAG, "Cannot send an empty C4002 command");
+    return;
+  }
+
+  const auto *command_data = static_cast<const uint8_t *>(pdata);
+  this->pending_command_ = command_data[0];
+  this->pending_response_type_ =
+      msg_type == FRAME_TYPE_READ_REQUSET ? FRAME_TYPE_READ_RESPOND : FRAME_TYPE_WRITE_RESPOND;
+  this->response_pending_ = true;
+
   uint8_t send_date[50] = {0};
 
   uint16_t data_len = 0;
@@ -942,7 +983,7 @@ void C4002Component::send_pack(void *pdata, uint16_t len, uint8_t msg_type) {
  * Read a data frame from the UART and parse it.
  * Returns a RecvPack struct with the parsed data.
  */
-RecvPack C4002Component::recv_pack() {
+RecvPack C4002Component::recv_frame() {
   RecvPack recv_dat{};
   uint8_t pdata[MAX_FRAME_LENGTH] = {0};
 
@@ -995,6 +1036,42 @@ RecvPack C4002Component::recv_pack() {
   return recv_dat;
 }
 
+RecvPack C4002Component::recv_pack() {
+  RecvPack response{};
+  response.resPonCode = CMD_ERR;
+  if (!this->response_pending_) {
+    ESP_LOGW(TAG, "No C4002 command response is pending");
+    return response;
+  }
+
+  const uint32_t started_at = millis();
+  while (millis() - started_at < 100) {
+    if (this->available() < 8) {
+      delay(1);
+      continue;
+    }
+
+    RecvPack packet = this->recv_frame();
+    if (packet.packType == FRAME_TYPE_NOTIFICATION) {
+      this->enqueue_notification(packet);
+      continue;
+    }
+
+    if (packet.packType == this->pending_response_type_ && packet.dataHeader.cmd == this->pending_command_) {
+      this->response_pending_ = false;
+      return packet;
+    }
+
+    ESP_LOGW(TAG, "Discarding unexpected C4002 frame (type=0x%02X, command=0x%02X)", packet.packType,
+             packet.dataHeader.cmd);
+  }
+
+  this->response_pending_ = false;
+  response.resPonCode = DATALEN_ERR;
+  ESP_LOGW(TAG, "Timed out waiting for C4002 response to command 0x%02X", this->pending_command_);
+  return response;
+}
+
 /**
  * check_sum
  * Check the check_sum of the data.
@@ -1022,24 +1099,10 @@ uint16_t C4002Component::get_check_sum(const uint8_t *pdata, uint16_t len) {
 }
 
 /**
- * uart_clear_buffer
- *t Drain and discard any pending bytes from the UART RX buffer.
- * Useful to ensure subsequent read returns fresh data.
- */
-void C4002Component::uart_clear_buffer() {
-  uint8_t tmp[64];  // Temporary buffer
-  while (this->available() > 0) {
-    size_t toread = std::min(static_cast<size_t>(this->available()), sizeof(tmp));
-    this->read_array(tmp, toread);  // Discard data
-  }
-}
-
-/**
  * uart_write_data
  * Write data to UART.type uint8_t *datas: Data to write.
  */
 void C4002Component::uart_write_data(uint8_t *datas, size_t len) {
-  uart_clear_buffer();
   this->write_array(datas, len);
 }
 

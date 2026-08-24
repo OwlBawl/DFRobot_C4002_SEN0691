@@ -265,9 +265,6 @@ class C4002Component : public Component, public uart::UARTDevice {
   void setup() override;
   void loop() override;
 
-  /** UART helpers */
-  void uart_clear_buffer();
-
   /** Debug / configuration helpers */
   void print_config();
   void setup_number();
@@ -392,6 +389,11 @@ class C4002Component : public Component, public uart::UARTDevice {
 #endif
 
  protected:
+  RecvPack recv_frame();
+  RetResult parse_notification(const RecvPack &packet);
+  void enqueue_notification(const RecvPack &packet);
+  bool dequeue_notification(RecvPack &packet);
+
   //**all data param **//
   DetectRet detect_result_{};
 
@@ -420,6 +422,16 @@ class C4002Component : public Component, public uart::UARTDevice {
   //** light threshold **//
   uint16_t light_threshold_;
   uint8_t reset_flag_ = 0;
+
+  // A command response must match both its frame type and command byte. Live
+  // notifications received while waiting are queued for loop() to process.
+  uint8_t pending_command_ = 0;
+  uint8_t pending_response_type_ = FRAME_ERROR;
+  bool response_pending_ = false;
+  static const uint8_t NOTIFICATION_QUEUE_SIZE = 2;
+  RecvPack notification_queue_[NOTIFICATION_QUEUE_SIZE] = {};
+  uint8_t notification_queue_head_ = 0;
+  uint8_t notification_queue_size_ = 0;
 
 #ifdef USE_SELECT
   // ** USE_SELECT **//
