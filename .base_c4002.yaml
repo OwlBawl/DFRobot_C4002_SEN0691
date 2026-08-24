@@ -139,10 +139,6 @@ sensor:
       name: "Motion Direction"
       id: ${dfrobot_id}_movement_direction_sensor
       internal: true
-    target_status:
-      name: "Target Status"
-      id: ${dfrobot_id}_target_status_sensor
-      internal: true
     illuminance:
       name: "Illuminance"
       id: ${dfrobot_id}_illuminance
