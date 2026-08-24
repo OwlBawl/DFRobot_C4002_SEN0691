@@ -9,6 +9,7 @@ C4002TextSensorHub = dfrobot_c4002_ns.class_("C4002TextSensorHub", cg.Component)
 
 C4002_TEXT_SENSOR = "c4002_text_sensor"
 CONF_ACTIVE_GATES_SUMMARY = "active_gates_summary"
+CONF_MOVEMENT_DIRECTION = "movement_direction"
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -19,6 +20,9 @@ CONFIG_SCHEMA = cv.Schema(
         ),
         cv.Optional(CONF_ACTIVE_GATES_SUMMARY): text_sensor.text_sensor_schema(
             icon="mdi:radar"
+        ),
+        cv.Optional(CONF_MOVEMENT_DIRECTION): text_sensor.text_sensor_schema(
+            icon="mdi:directions"
         ),
     }
 ).extend(cv.COMPONENT_SCHEMA)
@@ -41,3 +45,9 @@ async def to_code(config):
             config[CONF_ACTIVE_GATES_SUMMARY]
         )
         cg.add(hub.set_active_gates_summary_sensor(ts_summary))
+
+    if CONF_MOVEMENT_DIRECTION in config:
+        ts_dir = await text_sensor.new_text_sensor(
+            config[CONF_MOVEMENT_DIRECTION]
+        )
+        cg.add(hub.set_movement_direction_sensor(ts_dir))

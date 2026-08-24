@@ -135,10 +135,6 @@ sensor:
     movement_speed:
       name: "Motion Speed"
       id: ${dfrobot_id}_movement_speed_sensor
-    movement_direction:
-      name: "Motion Direction"
-      id: ${dfrobot_id}_movement_direction_sensor
-      internal: true
     illuminance:
       name: "Illuminance"
       id: ${dfrobot_id}_illuminance
@@ -156,20 +152,12 @@ sensor:
       id: ${dfrobot_id}_active_gates
 
 text_sensor:
-  - platform: template
-    name: "Movement Direction"
-    id: ${dfrobot_id}_movement_direction_text
-    icon: "mdi:directions"
-    lambda: |-
-      int d = id(${dfrobot_id}_movement_direction_sensor).state;
-      if (d == 0) return {"Away"};
-      else if (d == 1) return {"No Direction"};
-      else if (d == 2) return {"Approaching"};
-      else return {"Unknown"};
-    update_interval: 1s
-
   - platform: dfrobot_c4002
     c4002_id: ${dfrobot_id}
+    movement_direction:
+      name: "Movement Direction"
+      id: ${dfrobot_id}_movement_direction_text
+      icon: "mdi:directions"
     c4002_text_sensor:
       name: "Log"
       id: ${dfrobot_id}_log
