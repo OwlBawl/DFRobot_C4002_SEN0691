@@ -36,7 +36,7 @@ void C4002Component::loop() {
 
   ret = get_note_info_loop();
   if (ret.noteType == NOTE_INFO_RESULT) {
-    ESP_LOGD(TAG, "******run print NOTE_INFO_RESULT*********");
+    get_data();
   } else if (ret.noteType == NOTE_INFO_CALIBRATION) {
     ESP_LOGD(TAG, "********Calibration countdown: %2d s**********", ret.calibCountdown);
     if (ret.calibCountdown == 0) {
@@ -50,11 +50,6 @@ void C4002Component::loop() {
 #endif
       this->update_config_param();
     }
-  }
-
-  if (now - last_time >= 1000) {  // Execute every 1000ms
-    last_time = now;
-    get_data();
   }
 
   if (reset_flag_ == 1) {
