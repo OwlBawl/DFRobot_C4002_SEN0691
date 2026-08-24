@@ -85,54 +85,6 @@ binary_sensor:
     name: "Out Pin Presence"
     id: ${dfrobot_id}_out_presence
     device_class: presence
-  # C4002 Distance Gates
-  - platform: dfrobot_c4002
-    c4002_id: ${dfrobot_id}
-    gate_0:
-      name: "Gate 0 (0.2m)"
-      id: ${dfrobot_id}_gate_0
-    gate_1:
-      name: "Gate 1 (0.8m)"
-      id: ${dfrobot_id}_gate_1
-    gate_2:
-      name: "Gate 2 (1.6m)"
-      id: ${dfrobot_id}_gate_2
-    gate_3:
-      name: "Gate 3 (2.4m)"
-      id: ${dfrobot_id}_gate_3
-    gate_4:
-      name: "Gate 4 (3.2m)"
-      id: ${dfrobot_id}_gate_4
-    gate_5:
-      name: "Gate 5 (4.0m)"
-      id: ${dfrobot_id}_gate_5
-    gate_6:
-      name: "Gate 6 (4.8m)"
-      id: ${dfrobot_id}_gate_6
-    gate_7:
-      name: "Gate 7 (5.6m)"
-      id: ${dfrobot_id}_gate_7
-    gate_8:
-      name: "Gate 8 (6.4m)"
-      id: ${dfrobot_id}_gate_8
-    gate_9:
-      name: "Gate 9 (7.2m)"
-      id: ${dfrobot_id}_gate_9
-    gate_10:
-      name: "Gate 10 (8.0m)"
-      id: ${dfrobot_id}_gate_10
-    gate_11:
-      name: "Gate 11 (8.8m)"
-      id: ${dfrobot_id}_gate_11
-    gate_12:
-      name: "Gate 12 (9.6m)"
-      id: ${dfrobot_id}_gate_12
-    gate_13:
-      name: "Gate 13 (10.4m)"
-      id: ${dfrobot_id}_gate_13
-    gate_14:
-      name: "Gate 14 (11.2m)"
-      id: ${dfrobot_id}_gate_14
 
 # Sensor configuration
 sensor:

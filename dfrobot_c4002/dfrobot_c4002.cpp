@@ -92,7 +92,7 @@ void C4002Component::get_data() {
         if ((active_gates >> i) & 1) {
           if (first_active == -1) first_active = i;
           last_active = i;
-          snprintf(buf, sizeof(buf), "[%d🟢] ", i);
+          snprintf(buf, sizeof(buf), "%d🟢 ", i);
         } else {
           snprintf(buf, sizeof(buf), "%d ", i);
         }
