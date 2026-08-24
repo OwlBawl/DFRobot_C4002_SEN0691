@@ -76,6 +76,7 @@ void ResolutionModeSelect::control(const std::string &value) {
     if (this->parent_->set_resolution_mode(mode)) {
       ESP_LOGD(TAG, "Set resolution mode to %s", value.c_str());
       this->publish_state(value);
+      this->parent_->update_config_param();
     } else {
       ESP_LOGD(TAG, "Set resolution mode failed");
     }

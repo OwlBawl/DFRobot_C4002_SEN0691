@@ -206,6 +206,10 @@ void ReportPeriodNumber::control(float value) {
 
 void GateMotionThresholdNumber::control(float value) {
   if (this->parent_) {
+    if (this->gate_index_ >= this->parent_->get_gate_count()) {
+      this->publish_state(NAN);
+      return;
+    }
     if (this->parent_->set_single_gate_thresh(MOVE_DIST_DOOR, this->gate_index_, (uint8_t) value)) {
       this->publish_state(value);
     } else {
@@ -216,6 +220,10 @@ void GateMotionThresholdNumber::control(float value) {
 
 void GatePresenceThresholdNumber::control(float value) {
   if (this->parent_) {
+    if (this->gate_index_ >= this->parent_->get_gate_count()) {
+      this->publish_state(NAN);
+      return;
+    }
     if (this->parent_->set_single_gate_thresh(EXIST_DIST_DOOR, this->gate_index_, (uint8_t) value)) {
       this->publish_state(value);
     } else {

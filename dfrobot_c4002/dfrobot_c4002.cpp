@@ -13,8 +13,21 @@ static const char *const TAG = "dfrobot_c4002: ";
  * We call update_config_param() to load device configuration and publish initial values.
  */
 void C4002Component::setup() {
-  update_config_param();
-  ESP_LOGI(TAG, "The initialization of c4002 was successful!");
+  for (uint8_t gate = 0; gate < MAX_DOOR_COUNT; gate++) this->enable_door_[gate] = 1;
+
+  if (this->initialize_device()) {
+    this->update_config_param();
+    ESP_LOGI(TAG, "The initialization of c4002 was successful!");
+    return;
+  }
+
+  ESP_LOGW(TAG, "C4002 is unavailable; retrying every 5 seconds");
+  this->set_interval("c4002_initialize_retry", 5000, [this]() {
+    if (!this->initialize_device()) return;
+    this->cancel_interval("c4002_initialize_retry");
+    this->update_config_param();
+    ESP_LOGI(TAG, "C4002 connection restored");
+  });
 }
 
 /**
@@ -26,15 +39,12 @@ void C4002Component::print_config() { ESP_LOGD(TAG, "run print config"); }
 /**
  * loop
  * Main periodic loop called frequently by ESPHome.
- * We call get_data() every 1000 ms to read and parse UART data.
+ * Processes complete UART frames without waiting while the UART is idle.
  */
 void C4002Component::loop() {
-  // Perform periodic tasks here
-  static uint32_t last_time = 0;
-  uint32_t now = millis();
   RetResult ret = {};
 
-  ret = get_note_info_loop();
+  if (this->available() >= 8) ret = get_note_info_loop();
   if (ret.noteType == NOTE_INFO_RESULT) {
     get_data();
   } else if (ret.noteType == NOTE_INFO_CALIBRATION) {
@@ -95,7 +105,7 @@ void C4002Component::publish_gates_summary(uint32_t active_gates) {
   std::string gates_summary;
   int first_active = -1;
   int last_active = -1;
-  for (int i = 0; i < DOOR_COUNT; i++) {
+  for (uint8_t i = 0; i < this->get_gate_count(); i++) {
     if ((active_gates >> i) & 1) {
       if (first_active != -1) gates_summary += " ";
       gates_summary += std::to_string(i);
@@ -107,7 +117,8 @@ void C4002Component::publish_gates_summary(uint32_t active_gates) {
   }
   if (first_active != -1) {
     char buf[32];
-    snprintf(buf, sizeof(buf), "(%.1fm - %.1fm)", this->interval_point_[first_active], this->interval_point_[last_active]);
+    snprintf(buf, sizeof(buf), "(%.1fm - %.1fm)", this->get_gate_distance(first_active),
+             this->get_gate_distance(last_active));
     gates_summary += buf;
   }
   for (auto &listener : this->listeners_) {
@@ -117,12 +128,23 @@ void C4002Component::publish_gates_summary(uint32_t active_gates) {
 
 void C4002Component::publish_gate_thresholds() {
 #ifdef USE_NUMBER
-  for (uint8_t gate = 0; gate < DOOR_COUNT; gate++) {
+  const uint8_t gate_count = this->get_gate_count();
+  for (uint8_t gate = 0; gate < MAX_DOOR_COUNT; gate++) {
     if (this->gate_motion_thresh_numbers_[gate] != nullptr) {
-      this->gate_motion_thresh_numbers_[gate]->publish_state(this->motion_gate_thresh_[gate]);
+      const float value = gate < gate_count ? this->motion_gate_thresh_[gate] : NAN;
+      const float current = this->gate_motion_thresh_numbers_[gate]->state;
+      if (!this->gate_motion_thresh_numbers_[gate]->has_state() || std::isnan(current) != std::isnan(value) ||
+          (!std::isnan(value) && current != value)) {
+        this->gate_motion_thresh_numbers_[gate]->publish_state(value);
+      }
     }
     if (this->gate_presence_thresh_numbers_[gate] != nullptr) {
-      this->gate_presence_thresh_numbers_[gate]->publish_state(this->presence_gate_thresh_[gate]);
+      const float value = gate < gate_count ? this->presence_gate_thresh_[gate] : NAN;
+      const float current = this->gate_presence_thresh_numbers_[gate]->state;
+      if (!this->gate_presence_thresh_numbers_[gate]->has_state() || std::isnan(current) != std::isnan(value) ||
+          (!std::isnan(value) && current != value)) {
+        this->gate_presence_thresh_numbers_[gate]->publish_state(value);
+      }
     }
   }
 #endif
@@ -136,13 +158,10 @@ void C4002Component::publish_gate_thresholds() {
 void C4002Component::update_config_param() {
   ESP_LOGD(TAG, "update config param test!");
 
-  //** driver init **/
-  while (!begin()) {
-    delayMicroseconds(1000 * 300);
-
-    ESP_LOGD(TAG, "C4002 begin failed");
+  if (!this->get_resolution_mode()) {
+    ESP_LOGW(TAG, "Unable to read C4002 configuration");
+    return;
   }
-  ESP_LOGD(TAG, "C4002 begin success");
 
   setup_number();
 
@@ -192,11 +211,7 @@ void C4002Component::update_config_param() {
   }
 
   if (report_period_number_ != nullptr) {
-    float cur_val = report_period_number_->has_state() ? report_period_number_->state : 1.0f;
-    if (std::isnan(cur_val) || cur_val <= 0.0f) {
-      cur_val = 1.0f;
-    }
-    report_period_number_->publish_state(cur_val);
+    report_period_number_->publish_state(static_cast<float>(this->report_period_) * 0.1f);
   }
 
   LedMode run_led = LED_KEEP;
@@ -635,7 +650,7 @@ void C4002Component::get_distance_presence_threshold(DistanceDoorType door_type,
   uint8_t send_data[10];
   uint16_t data_len = 0;
   uint16_t temp = 7;
-  uint8_t door_num = 15;
+  uint8_t door_num = this->get_gate_count();
   uint8_t i = 0;
 
   send_data[data_len++] = CMD_SET_DISTANCE_DOOR_THRESHOLD;
@@ -652,7 +667,7 @@ void C4002Component::get_distance_presence_threshold(DistanceDoorType door_type,
   while (SUCCEED != rec_pack.resPonCode) {
     send_pack(send_data, data_len, FRAME_TYPE_READ_REQUSET);
     rec_pack = recv_pack();
-    if (SUCCEED == rec_pack.resPonCode) {
+    if (SUCCEED == rec_pack.resPonCode && rec_pack.dataHeader.dataLen >= static_cast<uint16_t>(3 + door_num)) {
       memcpy(gate_data, &rec_pack.data[3], door_num);
       return;
     }
@@ -668,7 +683,8 @@ void C4002Component::get_distance_presence_threshold(DistanceDoorType door_type,
  * Analysis the gate data,send the result.
  */
 void C4002Component::analysis_text_report() {
-  uint8_t move_data[15], exist_data[15];
+  uint8_t move_data[MAX_DOOR_COUNT] = {0};
+  uint8_t exist_data[MAX_DOOR_COUNT] = {0};
   uint8_t thld = 80;
   std::vector<uint8_t> over_indices;
   uint8_t flag = 0;
@@ -676,7 +692,7 @@ void C4002Component::analysis_text_report() {
   get_distance_presence_threshold(MOVE_DIST_DOOR, move_data);
   get_distance_presence_threshold(EXIST_DIST_DOOR, exist_data);
 
-  for (int8_t i = 0; i < 15; i++) {
+  for (uint8_t i = 0; i < this->get_gate_count(); i++) {
     if (move_data[i] < exist_data[i]) {
       move_data[i] = exist_data[i];
     }
@@ -704,7 +720,7 @@ void C4002Component::analysis_text_report() {
   for (size_t i = 0; i < over_indices.size(); i++) {
     uint8_t idx = over_indices[i];
 
-    offset += snprintf(data_str + offset, sizeof(data_str) - offset, "%.1f%s", interval_point_[idx],
+    offset += snprintf(data_str + offset, sizeof(data_str) - offset, "%.1f%s", this->get_gate_distance(idx),
                        (i < over_indices.size() - 1) ? ", " : "");
   }
 
@@ -735,6 +751,16 @@ float C4002Component::get_light() { return ((float) detect_result_.light * 0.1);
  */
 uint32_t C4002Component::get_exist_dist_index() { return detect_result_.existDistIndex; }
 
+uint8_t C4002Component::get_gate_count() const {
+  return this->resolution_mode_ == RESOLUTION_20CM ? DOOR_COUNT_20CM : DOOR_COUNT_80CM;
+}
+
+float C4002Component::get_gate_distance(uint8_t gate_index) const {
+  if (gate_index >= this->get_gate_count()) return NAN;
+  return this->resolution_mode_ == RESOLUTION_20CM ? 0.1f + (0.2f * gate_index)
+                                                    : 0.2f + (0.8f * gate_index);
+}
+
 /**
  * get_exist_target_info
  * Get the information of the existing target.
@@ -762,24 +788,15 @@ MoveTgt C4002Component::get_move_target_info() {
 }
 
 /**
- * begin
- * Initialize the device
+ * initialize_device
+ * Verify communication and apply the component's initial report period once.
  * Returns true if successful, false otherwise.
  */
-bool C4002Component::begin() {
-  bool ret;
+bool C4002Component::initialize_device() {
+  if (!this->get_resolution_mode()) return false;
+  if (!this->set_report_period(this->report_period_)) return false;
 
-  ret = set_report_period(255);
-  if (!ret) {
-    return false;
-  }
-  delay(10);
-  ret = set_resolution_mode(resolution_mode_);
-  if (!ret) {
-    return false;
-  }
-  ret = enable_all_distance_door(enable_door_);
-  return ret;
+  return true;
 }
 
 /**
@@ -810,7 +827,7 @@ RetResult C4002Component::get_note_info_loop() {
 
   if (SUCCEED == rec_data.resPonCode) {
     if (rec_data.packType == FRAME_TYPE_NOTIFICATION) {  // note
-      if (rec_data.dataHeader.cmd == NOTE_RESULT_CMD) {
+      if (rec_data.dataHeader.cmd == NOTE_RESULT_CMD && rec_data.dataHeader.dataLen >= 22) {
         // memcpy(&this->detect_result_, rec_data.data, sizeof(DetectRet));
         this->detect_result_.targetStatus = rec_data.data[0];
         this->detect_result_.light = rec_data.data[2] << 8 | rec_data.data[1];
@@ -824,7 +841,7 @@ RetResult C4002Component::get_note_info_loop() {
         this->detect_result_.moveTargetEnery = rec_data.data[16];
         this->detect_result_.moveTargetDirect = rec_data.data[17];
         ret.noteType = NOTE_INFO_RESULT;
-      } else if (rec_data.dataHeader.cmd == NOTE_ENVIRNMENT_CALIBRATION_CMD) {
+      } else if (rec_data.dataHeader.cmd == NOTE_ENVIRNMENT_CALIBRATION_CMD && rec_data.dataHeader.dataLen >= 6) {
         ret.calibCountdown = rec_data.data[1] << 8 | rec_data.data[0];
         ret.noteType = NOTE_INFO_CALIBRATION;
       } else {
@@ -881,7 +898,9 @@ bool C4002Component::set_report_period(uint8_t period)  //范围0-255.单位100m
   send_pack(send_date, data_len, FRAME_TYPE_WRITE_REQUSET);
 
   RecvPack rec_pack = recv_pack();
-  return (SUCCEED == rec_pack.resPonCode);
+  if (SUCCEED != rec_pack.resPonCode) return false;
+  this->report_period_ = period;
+  return true;
 }
 
 /**
@@ -922,25 +941,32 @@ void C4002Component::send_pack(void *pdata, uint16_t len, uint8_t msg_type) {
  * Returns a RecvPack struct with the parsed data.
  */
 RecvPack C4002Component::recv_pack() {
-  RecvPack recv_dat;
-  memset(&recv_dat, 0, sizeof(recv_dat));
+  RecvPack recv_dat{};
+  uint8_t pdata[MAX_FRAME_LENGTH] = {0};
 
-  std::vector<uint8_t> pdata(60, 0);
-
-  size_t recv_len = uart_read_raw(pdata.data(), 8, 20);
+  size_t recv_len = uart_read_raw(pdata, 8, 20);
 
   if (recv_len == 8 && pdata[0] == C4002_FRAME_HEADER1 && pdata[1] == C4002_FRAME_HEADER2 &&
       pdata[2] == C4002_FRAME_HEADER3 && pdata[3] == C4002_FRAME_HEADER4) {
     size_t pack_len = (pdata[5] << 8) | pdata[4];
+    if (pack_len < 12 || pack_len > MAX_FRAME_LENGTH) {
+      recv_dat.resPonCode = DATALEN_ERR;
+      return recv_dat;
+    }
 
     recv_len = uart_read_raw(&pdata[8], (size_t) (pack_len - 8), 20);
 
     if (recv_len == (pack_len - 8)) {
       recv_dat.packType = pdata[7];
-      if (check_sum(pdata.data(), pack_len)) {
+      if (check_sum(pdata, pack_len)) {
         uint16_t data_len = (pdata[11] << 8) | pdata[10];
+        const size_t max_data_len = sizeof(recv_dat.dataHeader) + sizeof(recv_dat.data);
+        if (data_len < sizeof(recv_dat.dataHeader) || data_len > max_data_len || data_len + 10 != pack_len) {
+          recv_dat.resPonCode = DATALEN_ERR;
+          return recv_dat;
+        }
 
-        memcpy(&recv_dat, &pdata[8], data_len);
+        memcpy(&recv_dat.dataHeader, &pdata[8], data_len);
         recv_dat.resPonCode = (ResponseCode) recv_dat.dataHeader.respCode;
 
         if (recv_dat.packType == FRAME_TYPE_NOTIFICATION) {
@@ -1018,16 +1044,13 @@ void C4002Component::uart_write_data(uint8_t *datas, size_t len) {
 /**
  * uart_read_raw
  * Read raw bytes from UART into buf until timeout or buffer full.
- * Returns number of bytes written (excluding final NUL).
- *
- * Note: bufsize should be >= 2 (we reserve one byte for terminating NUL).
+ * Returns the number of binary bytes written.
  */
 size_t C4002Component::uart_read_raw(uint8_t *buf, size_t bufsize, uint32_t timeout_ms) {
   if (!buf)
     return 0;
   size_t idx = 0;
   uint32_t start = millis();
-  buf[0] = '\0';
   while ((millis() - start) < timeout_ms && idx < bufsize) {
     size_t avail = this->available();
     if (avail > 0) {
@@ -1042,7 +1065,6 @@ size_t C4002Component::uart_read_raw(uint8_t *buf, size_t bufsize, uint32_t time
     // No data available, short delay
     delay(1);
   }
-  buf[idx] = '\0';
   return idx;
 }
 
@@ -1113,8 +1135,9 @@ bool C4002Component::joint_enable_door() {
     if (max < 0)
       max = 0;
 
-    for (int door = 0; door < 15; door++) {
-      if (interval_point_[door] > min && max > interval_point_[door]) {
+    for (uint8_t door = 0; door < this->get_gate_count(); door++) {
+      const float gate_distance = this->get_gate_distance(door);
+      if (gate_distance > min && max > gate_distance) {
         enable_door_[door] = 0;
       }
     }
@@ -1267,7 +1290,7 @@ bool C4002Component::get_distance_gate_thresh(DistanceDoorType door_type, uint8_
   uint8_t send_data[10];
   uint16_t data_len = 0;
   uint16_t temp = 7;
-  uint8_t door_num = (this->resolution_mode_ == RESOLUTION_20CM) ? 25 : 15;
+  uint8_t door_num = this->get_gate_count();
 
   send_data[data_len++] = CMD_SET_DISTANCE_DOOR_THRESHOLD;
   send_data[data_len++] = READ_AND_WRITE_REQ;
@@ -1280,7 +1303,7 @@ bool C4002Component::get_distance_gate_thresh(DistanceDoorType door_type, uint8_
   for (int retry = 0; retry < 5; retry++) {
     send_pack(send_data, data_len, FRAME_TYPE_READ_REQUSET);
     RecvPack rec_pack = recv_pack();
-    if (SUCCEED == rec_pack.resPonCode) {
+    if (SUCCEED == rec_pack.resPonCode && rec_pack.dataHeader.dataLen >= static_cast<uint16_t>(3 + door_num)) {
       memcpy(gate_data, &rec_pack.data[3], door_num);
       return true;
     }
@@ -1293,7 +1316,7 @@ bool C4002Component::set_gate_thresh(DistanceDoorType door_type, const uint8_t *
   if (thresh == nullptr) return false;
   uint8_t send_data[35];
   uint16_t data_len = 0;
-  uint8_t door_num = (this->resolution_mode_ == RESOLUTION_20CM) ? 25 : 15;
+  uint8_t door_num = this->get_gate_count();
   uint16_t temp = 7 + door_num;
 
   send_data[data_len++] = CMD_SET_DISTANCE_DOOR_THRESHOLD;
@@ -1314,14 +1337,17 @@ bool C4002Component::set_gate_thresh(DistanceDoorType door_type, const uint8_t *
 }
 
 bool C4002Component::set_single_gate_thresh(DistanceDoorType door_type, uint8_t gate_index, uint8_t value) {
-  if (gate_index >= 15) return false;
+  if (gate_index >= this->get_gate_count()) return false;
   uint8_t *buffer = (door_type == MOVE_DIST_DOOR) ? motion_gate_thresh_ : presence_gate_thresh_;
+  const uint8_t previous_value = buffer[gate_index];
   buffer[gate_index] = value;
-  return set_gate_thresh(door_type, buffer);
+  if (this->set_gate_thresh(door_type, buffer)) return true;
+  buffer[gate_index] = previous_value;
+  return false;
 }
 
 uint8_t C4002Component::get_cached_gate_thresh(DistanceDoorType door_type, uint8_t gate_index) {
-  if (gate_index >= 15) return 0;
+  if (gate_index >= this->get_gate_count()) return 0;
   return (door_type == MOVE_DIST_DOOR) ? motion_gate_thresh_[gate_index] : presence_gate_thresh_[gate_index];
 }
 

@@ -77,7 +77,10 @@ static const uint8_t NOTE_ENVIRNMENT_CALIBRATION_CMD = 0x03;
 
 static const uint8_t SOFTWARE_VERSION = 0x01;
 static const uint8_t HARDWARE_VERSION = 0x00;
-static const int DOOR_COUNT = 15;
+static const uint8_t DOOR_COUNT_80CM = 15;
+static const uint8_t DOOR_COUNT_20CM = 25;
+static const uint8_t MAX_DOOR_COUNT = DOOR_COUNT_20CM;
+static const size_t MAX_FRAME_LENGTH = 64;
 
 /**
  * @enum SensitivityLevel
@@ -279,7 +282,7 @@ class C4002Component : public Component, public uart::UARTDevice {
   void register_listener(C4002Listener *listener) { this->listeners_.push_back(listener); }
 
   //** / init device **//
-  bool begin();
+  bool initialize_device();
 
   //** param setters **//
   bool factory_reset();
@@ -310,6 +313,8 @@ class C4002Component : public Component, public uart::UARTDevice {
   float get_lock_time();
   SensitivityLevel get_sensitivity(DistanceDoorType door_type);
   uint8_t get_cached_gate_thresh(DistanceDoorType door_type, uint8_t gate_index);
+  uint8_t get_gate_count() const;
+  float get_gate_distance(uint8_t gate_index) const;
   bool get_led_status(LedMode &run_led, LedMode &out_led);
   TargetState get_target_state();
   float get_light();
@@ -358,10 +363,10 @@ class C4002Component : public Component, public uart::UARTDevice {
   void set_lock_time_number(number::Number *number) { this->lock_time_number_ = number; }
   void set_report_period_number(number::Number *number) { this->report_period_number_ = number; }
   void set_gate_motion_thresh_number(uint8_t gate_index, number::Number *number) {
-    if (gate_index < DOOR_COUNT) this->gate_motion_thresh_numbers_[gate_index] = number;
+    if (gate_index < MAX_DOOR_COUNT) this->gate_motion_thresh_numbers_[gate_index] = number;
   }
   void set_gate_presence_thresh_number(uint8_t gate_index, number::Number *number) {
-    if (gate_index < DOOR_COUNT) this->gate_presence_thresh_numbers_[gate_index] = number;
+    if (gate_index < MAX_DOOR_COUNT) this->gate_presence_thresh_numbers_[gate_index] = number;
   }
   void set_area1_min_range_number(number::Number *number) { this->area1_min_range_number_ = number; }
   void set_area1_max_range_number(number::Number *number) { this->area1_max_range_number_ = number; }
@@ -404,12 +409,13 @@ class C4002Component : public Component, public uart::UARTDevice {
 
   //** area range **//
   float current_area_[6] = {0, 0, 0, 0, 0, 0};
-  uint8_t enable_door_[15] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+  uint8_t enable_door_[MAX_DOOR_COUNT] = {1};
 
   //** gate thresholds & telemetry **//
-  uint8_t motion_gate_thresh_[15] = {0};
-  uint8_t presence_gate_thresh_[15] = {0};
+  uint8_t motion_gate_thresh_[MAX_DOOR_COUNT] = {0};
+  uint8_t presence_gate_thresh_[MAX_DOOR_COUNT] = {0};
   bool show_gates_energy_ = false;
+  uint8_t report_period_ = 10;
 
   //** light threshold **//
   uint16_t light_threshold_;
@@ -439,8 +445,8 @@ class C4002Component : public Component, public uart::UARTDevice {
   number::Number *light_threshold_number_{nullptr};
   number::Number *lock_time_number_{nullptr};
   number::Number *report_period_number_{nullptr};
-  number::Number *gate_motion_thresh_numbers_[DOOR_COUNT] = {nullptr};
-  number::Number *gate_presence_thresh_numbers_[DOOR_COUNT] = {nullptr};
+  number::Number *gate_motion_thresh_numbers_[MAX_DOOR_COUNT] = {nullptr};
+  number::Number *gate_presence_thresh_numbers_[MAX_DOOR_COUNT] = {nullptr};
   number::Number *area1_min_range_number_{nullptr};
   number::Number *area1_max_range_number_{nullptr};
   number::Number *area2_min_range_number_{nullptr};
@@ -449,8 +455,6 @@ class C4002Component : public Component, public uart::UARTDevice {
   number::Number *area3_max_range_number_{nullptr};
   number::Number *target_disappeard_delay_time_number_{nullptr};
 #endif
-
-  float interval_point_[15] = {0.2, 0.8, 1.6, 2.4, 3.2, 4, 4.8, 5.6, 6.4, 7.2, 8, 8.8, 9.6, 10.4, 11.2};
 
   std::vector<C4002Listener *> listeners_{};
 };

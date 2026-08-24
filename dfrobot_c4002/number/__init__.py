@@ -25,7 +25,7 @@ from .const import (
 CONF_TARGET_DISAPPEARD_DELAY_TIME = "target_disappeard_delay_time"
 CONF_LOCK_TIME = "lock_time"
 CONF_REPORT_PERIOD = "report_period"
-GATE_COUNT = 15
+GATE_COUNT = 25
 
 MinDetectRangeNumber = dfrobot_c4002_ns.class_("MinDetectRangeNumber", number.Number)
 MaxRDetectangeNumber = dfrobot_c4002_ns.class_("MaxDetectRangeNumber", number.Number)
