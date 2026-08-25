@@ -37,7 +37,7 @@ The included ESP32-S2 example uses soldered all in line 5 pins: VBUS, GND, GPIO1
 
 1. Copy [`DFRobot-c4002-test.yaml`](DFRobot-c4002-test.yaml) into your ESPHome configuration directory.
 2. Change the `substitutions` at the top: device name, friendly name, C4002 ID, and board/pins as needed.
-3. Ensure the secrets referenced by [`.base_c4002.yaml`](.base_c4002.yaml) exist: `wifi_ssid`, `wifi_password`, `ap_wifi_pass`, and `api_key`.
+3. Ensure the `!secret` referenced by [`.base_c4002.yaml`](.base_c4002.yaml) exist in you ESPhome Secrets settings, or just replace them with inline text: `wifi_ssid`, `wifi_password`, `ap_wifi_pass`, and `api_key`.
 4. Compile and flash from ESPHome.
 
 The example loads this repository as an external component:
