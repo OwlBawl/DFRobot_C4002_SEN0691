@@ -28,8 +28,10 @@ Use a 5 V supply for the SEN0691 and connect the UART lines crossed:
 | `RX` | UART TX |
 | `OUT` | Optional GPIO input |
 
-The included ESP32-S2 example uses soldered all in line 5 pins: VBUS, GND, GPIO16 for TX, GPIO18 for RX, and GPIO33 for the optional OUT pin. 
-<img width="1024" height="1024" alt="esp32-s2-mini-dfrobot_c4002" src="https://github.com/user-attachments/assets/16fac748-3e85-4378-b007-9f6d22cd8d8a" />
+The included ESP32-S2 example uses soldered all in line 5 pins: VBUS, GND, GPIO16 for TX, GPIO18 for RX, and GPIO33 for the optional OUT pin.
+
+<img width="512" height="512" alt="esp32-s2-mini-dfrobot_c4002" src="https://github.com/user-attachments/assets/5f5b6fbd-d46e-4c6e-8ef6-7fa309310f09" />
+
 
 ## Installation
 
@@ -65,10 +67,10 @@ For local development, replace the Git source with a local `external_components`
 | Gate controls | Gate 0–24 Move and Still thresholds |
 | Actions | Refresh Parameters, Factory Reset, Sensor Calibration |
 
-<img width="370" height="780" alt="Screenshot 2026-08-25 at 12 15 31" src="https://github.com/user-attachments/assets/ffbd7dcc-5b35-4e1d-acd3-56ee7e021e71" />
-<img width="373" height="771" alt="Screenshot 2026-08-25 at 12 15 15" src="https://github.com/user-attachments/assets/5ae603ef-2c80-47f2-89e3-2f9c8d811830" />
-<img width="370" height="600" alt="Screenshot 2026-08-25 at 12 14 58" src="https://github.com/user-attachments/assets/3ff44517-4faa-4f1c-a035-1b127617cdd3" />
 <img width="371" height="710" alt="Screenshot 2026-08-25 at 12 14 37" src="https://github.com/user-attachments/assets/c07cc02b-bc0b-479c-b570-7b0046bbbda2" />
+<img width="370" height="600" alt="Screenshot 2026-08-25 at 12 14 58" src="https://github.com/user-attachments/assets/3ff44517-4faa-4f1c-a035-1b127617cdd3" />
+<img width="373" height="771" alt="Screenshot 2026-08-25 at 12 15 15" src="https://github.com/user-attachments/assets/5ae603ef-2c80-47f2-89e3-2f9c8d811830" />
+<img width="370" height="780" alt="Screenshot 2026-08-25 at 12 15 31" src="https://github.com/user-attachments/assets/ffbd7dcc-5b35-4e1d-acd3-56ee7e021e71" />
 
 ## Gates and resolution
 
