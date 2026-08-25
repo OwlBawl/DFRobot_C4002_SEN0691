@@ -47,7 +47,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/OwlBawl/DFRobot_C4002_SEN0691.git
-      ref: test
+      ref: main
       path: .
     components: [dfrobot_c4002]
     refresh: 0s
