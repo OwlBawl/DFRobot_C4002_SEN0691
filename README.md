@@ -95,4 +95,4 @@ The C4002 firmware may retain environmental-calibration-derived values in its th
 
 - [DFRobot C4002 library](https://github.com/DFRobot/DFRobot_C4002)
 - [SEN0691 product documentation](https://wiki.dfrobot.com/sen0691/)
-- [DFRobot factory-reset example](https://github.com/DFRobot/DFRobot_C4002/blob/main/examples/factoryReset/factoryReset.ino)
+- [DFRobot ESPhome example used](https://github.com/cdjq/Home_Assistant_C4002/)
