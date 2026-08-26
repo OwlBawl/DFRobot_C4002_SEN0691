@@ -1,0 +1,54 @@
+# ESP32 common diagnostics entities for ESPhome
+
+sensor:
+  # ESP
+  - platform: wifi_signal
+    name: "ESP WiFi RSSI"
+    id: wifi_signal_rssi
+    update_interval: 60s
+    entity_category: "diagnostic"
+  - platform: uptime
+    name: ESP Uptime
+    id: sys_uptime
+    update_interval: 10s
+  - platform: debug
+    free:
+      id: esp_memory
+      icon: mdi:memory
+      name: ESP Free Memory
+      filters:
+        - lambda: return x / 1024;
+      unit_of_measurement: 'kB'
+      state_class: measurement
+      entity_category: "diagnostic"
+
+binary_sensor:
+  # ESP
+  - platform: status
+    name: ESP Online
+    id: ha_connected
+
+text_sensor:
+  # ESP
+  - platform: wifi_info
+    ip_address:
+      name: "ESP WiFi IP"
+      icon: mdi:ip-network
+    ssid:
+      name: "ESP WiFi SSID"
+      icon: mdi:wifi
+    mac_address:
+      name: "ESP WiFi Mac"
+      icon: mdi:ip-network
+  - platform: debug
+    reset_reason:
+      name: "Reset Reason"
+      id: reset_reason_sensor
+      icon: mdi:autorenew
+
+button:
+  # ESP
+  - platform: restart
+    name: "ESP Restart"
+  - platform: safe_mode
+    name: "ESP Restart (Safe Mode)"
