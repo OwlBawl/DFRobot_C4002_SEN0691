@@ -7,8 +7,8 @@ substitutions:
 
   dfrobot_name: "DFRobot C4002 Test" # Change THIS
   dfrobot_id: "c4002_test" # Change THIS
-  dfrobot_uart: c4002_uart
-  dfrobot_topic_prefix: dfrobot-presence
+  dfrobot_uart: c4002_uart # Change THIS
+  dfrobot_topic_prefix: dfrobot-presence # Change THIS
 
   ipstatic: 10.10.20.163 # Change THIS
 
